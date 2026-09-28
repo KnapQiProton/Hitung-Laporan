@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator Laporan Keuangan Bulanan - Word (.docx) & PDF (.pdf)</title>
+  <script src="docx.umd.js"></script>
+  <script src="FileSaver.min.js"></script>
+  <script src="html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --primary: #1d4ed8;
+      --primary-hover: #1e40af;
+      --primary-light: #eff6ff;
+      --success: #15803d;
+      --success-hover: #166534;
+      --pdf-red: #dc2626;
+      --pdf-red-hover: #b91c1c;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --radius: 10px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: #f1f5f9;
+      color: var(--gray-800);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      color: white;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      box-shadow: 0 2px 4px rgba(29, 78, 216, 0.3);
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .brand p {
+      font-size: 0.8rem;
+      color: var(--gray-600);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 1080px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* CARD STYLING */
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid var(--gray-100);
+      padding-bottom: 10px;
+    }
+
+    .card-title .badge {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 999px;
+    }
+
+    /* FORM STYLES */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: 4px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--gray-300);
+      font-size: 0.875rem;
+      color: var(--gray-900);
+      outline: none;
+      transition: all 0.15s ease;
+      background: white;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .input-money-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .currency-prefix {
+      position: absolute;
+      left: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      pointer-events: none;
+    }
+
+    .input-money-wrapper input {
+      padding-left: 42px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    /* EXPENSE LIST TABLE */
+    .expense-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+
+    .expense-table th {
+      background: var(--gray-50);
+      padding: 8px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-600);
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .expense-table td {
+      padding: 6px 4px;
+      vertical-align: middle;
+    }
+
+    .btn-delete-row {
+      background: none;
+      border: none;
+      color: var(--pdf-red);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: background 0.15s;
+    }
+
+    .btn-delete-row:hover {
+      background: #fef2f2;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      font-family: inherit;
+    }
+
+    .btn-word {
+      background: #1d4ed8;
+      color: white;
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+    }
+    .btn-word:hover {
+      background: #1e40af;
+    }
+
+    .btn-pdf {
+      background: #dc2626;
+      color: white;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+    .btn-pdf:hover {
+      background: #b91c1c;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--gray-700);
+      border-color: var(--gray-300);
+    }
+    .btn-secondary:hover {
+      background: var(--gray-50);
+      border-color: var(--gray-400);
+    }
+
+    .btn-danger {
+      background: white;
+      color: var(--pdf-red);
+      border-color: #fca5a5;
+    }
+    .btn-danger:hover {
+      background: #fef2f2;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+
+    .btn-lg {
+      padding: 12px 20px;
+      font-size: 0.95rem;
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    /* SUMMARY STATS */
+    .stat-badge {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--gray-50);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      border: 1px solid var(--gray-200);
+    }
+
+    .stat-badge.highlight {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .stat-badge.highlight-red {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .stat-badge .stat-label {
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .stat-badge .stat-value {
+      font-weight: 700;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+
+    /* PREVIEW PANE (A4 PAPER LOOK) */
+    .preview-sticky {
+      position: sticky;
+      top: 86px;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .preview-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .a4-paper {
+      background: white;
+      width: 100%;
+      min-height: 720px;
+      padding: 44px 50px;
+      border-radius: 8px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--gray-300);
+      font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+      color: #000;
+      font-size: 13.5px;
+      line-height: 1.45;
+      position: relative;
+    }
+
+    .paper-title {
+      text-align: center;
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-transform: capitalize;
+    }
+
+    .paper-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 13.5px;
+    }
+
+    .paper-table td {
+      padding: 3.5px 0;
+      vertical-align: bottom;
+    }
+
+    .paper-table .col-desc {
+      width: 52%;
+      text-align: left;
+    }
+
+    .paper-table .col-eq {
+      width: 8%;
+      text-align: center;
+    }
+
+    .paper-table .col-rp {
+      width: 8%;
+      text-align: left;
+    }
+
+    .paper-table .col-amt {
+      width: 32%;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sum-line td.col-eq,
+    .sum-line td.col-rp,
+    .sum-line td.col-amt {
+      border-bottom: 1.5px solid #000;
+      padding-bottom: 3.5px;
+    }
+
+    .row-bold {
+      font-weight: bold;
+    }
+
+    .signatures-block {
+      margin-top: 50px;
+      display: flex;
+      justify-content: space-between;
+      text-align: center;
+      padding: 0 10px;
+    }
+
+    .sig-col {
+      width: 220px;
+    }
+
+    .sig-space {
+      height: 80px;
+    }
+
+    .sig-name {
+      font-weight: bold;
+    }
+
+    /* ACTION DOWNLOAD BAR */
+    .download-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 100px;
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+
+    @media (max-width: 600px) {
+      .download-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* TOAST NOTIFIKASI */
+    #toast {
+      visibility: hidden;
+      min-width: 260px;
+      background-color: #1e293b;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px 20px;
+      position: fixed;
+      z-index: 100;
+      right: 30px;
+      bottom: 30px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+      opacity: 0;
+    }
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      bottom: 40px;
+    }
+
+    /* PRINT STYLES */
+    @media print {
+      body {
+        background: white;
+      }
+      body * {
+        visibility: hidden;
+      }
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 15mm 20mm;
+        box-shadow: none;
+        border: none;
+      }
+      header, .form-column, .preview-header, #toast, .download-grid {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">W</div>
+      <div>
+        <h1>Generator Laporan Keuangan Bulanan</h1>
+        <p>Input data pengeluaran dan download langsung dalam format Word (.docx) atau PDF (.pdf)</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="muatDataContoh()">
+        <span>📋</span> Muat Contoh Sesuai Foto
+      </button>
+      <button class="btn btn-danger btn-sm" onclick="lanjutBulanBerikutnya()">
+        <span>⏩</span> Lanjut Bulan Berikutnya
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <div class="container">
+    
+    <!-- LEFT COLUMN: FORM INPUT -->
+    <div class="form-column">
+
+      <!-- PERIODE -->
+      <div class="card">
+        <div class="card-title">
+          <span>📅</span> 1. Periode Laporan
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bulanSekarang">Bulan Laporan Ini</label>
+            <select id="bulanSekarang" onchange="onBulanSekarangChange()">
+              <option value="Januari">Januari</option>
+              <option value="Februari">Februari</option>
+              <option value="Maret">Maret</option>
+              <option value="April">April</option>
+              <option value="Mei">Mei</option>
+              <option value="Juni">Juni</option>
+              <option value="Juli">Juli</option>
+              <option value="Agustus" selected>Agustus</option>
+              <option value="September">September</option>
+              <option value="Oktober">Oktober</option>
+              <option value="November">November</option>
+              <option value="Desember">Desember</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tahun">Tahun</label>
+            <input type="number" id="tahun" value="2026" oninput="updateAll()">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bulanKemarin">Bulan Kemarin</label>
+            <input type="text" id="bulanKemarin" value="juni" placeholder="Contoh: juni atau Juli" oninput="updateAll()">
+            <div class="hint">Otomatis berubah mengikuti bulan sekarang (bisa diedit manual)</div>
+          </div>
+          <div class="form-group">
+            <label for="fontDocx">Pilihan Font Dokumen</label>
+            <select id="fontDocx" onchange="updateAll()">
+              <option value="Arial" selected>Arial (Sesuai Gambar)</option>
+              <option value="Calibri">Calibri</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Segoe UI">Segoe UI</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- SALDO & PEMASUKAN -->
+      <div class="card">
+        <div class="card-title">
+          <span>💰</span> 2. Saldo Awal & Saldo Masuk
+        </div>
+        <div class="form-group">
+          <label for="inputSaldoKemarin">Sisa Saldo Bulan Kemarin</label>
+          <div class="input-money-wrapper">
+            <span class="currency-prefix">Rp.</span>
+            <input type="text" id="inputSaldoKemarin" value="-166.000" oninput="handleMoneyInput(this); updateAll()" placeholder="0 (bisa pakai minus -)">
+          </div>
+          <div class="hint">Bisa pakai tanda minus jika saldo kas tekor (contoh: <code>-166.000</code>)</div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputSaldoMasuk">Saldo Masuk Bulan Sekarang</label>
+          <div class="input-money-wrapper">
+            <span class="currency-prefix">Rp.</span>
+            <input type="text" id="inputSaldoMasuk" value="1.600.000" oninput="handleMoneyInput(this); updateAll()" placeholder="0">
+          </div>
+        </div>
+
+        <div class="stat-badge highlight">
+          <span class="stat-label">Total Saldo Tersedia (Pemasukan):</span>
+          <span class="stat-value" id="displayTotalPemasukan">Rp. 1.434.000</span>
+        </div>
+      </div>
+
+      <!-- PENGELUARAN -->
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between;">
+          <div>
+            <span>📝</span> 3. Daftar Pengeluaran
+            <span class="badge" id="countPengeluaran">7 item</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="tambahPengeluaran()">
+            <span>➕</span> Tambah Baris
+          </button>
+        </div>
+
+        <table class="expense-table" id="tabelInputPengeluaran">
+          <thead>
+            <tr>
+              <th style="width: 52%;">Nama Pengeluaran</th>
+              <th style="width: 38%; text-align: right;">Nominal (Rp)</th>
+              <th style="width: 10%; text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="bodyPengeluaran">
+            <!-- Row item dinamis -->
+          </tbody>
+        </table>
+
+        <button class="btn btn-secondary btn-sm full-width" onclick="tambahPengeluaran()" style="margin-bottom: 14px; border-style: dashed;">
+          <span>➕</span> Klik untuk Tambah Pengeluaran (atau tekan Enter di kolom nominal)
+        </button>
+
+        <div class="stat-badge highlight">
+          <span class="stat-label">Total Pengeluaran:</span>
+          <span class="stat-value" id="displayTotalPengeluaran">Rp. 2.022.000</span>
+        </div>
+
+        <div class="stat-badge" id="badgeSaldoAkhir">
+          <span class="stat-label">Sisa Saldo Akhir (Pemasukan - Pengeluaran):</span>
+          <span class="stat-value" id="displaySaldoAkhir">Rp. -588.000</span>
+        </div>
+      </div>
+
+      <!-- TANDA TANGAN -->
+      <div class="card">
+        <div class="card-title">
+          <span>✍️</span> 4. Penandatangan
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-group">
+              <label for="jabatanKiri">Jabatan Kiri</label>
+              <input type="text" id="jabatanKiri" value="ketua" oninput="updateAll()">
+            </div>
+            <div class="form-group">
+              <label for="namaKiri">Nama Kiri</label>
+              <input type="text" id="namaKiri" value="Syarif Hidayat" oninput="updateAll()">
+            </div>
+          </div>
+          <div>
+            <div class="form-group">
+              <label for="jabatanKanan">Jabatan Kanan</label>
+              <input type="text" id="jabatanKanan" value="Bendahara" oninput="updateAll()">
+            </div>
+            <div class="form-group">
+              <label for="namaKanan">Nama Kanan</label>
+              <input type="text" id="namaKanan" value="Ahmad Rizal" oninput="updateAll()">
+            </div>
+          </div>
+        </div>
+        <div class="hint">Nama penandatangan tersimpan otomatis, tidak perlu diketik ulang setiap bulan.</div>
+      </div>
+
+      <!-- ACTION BUTTONS: WORD, PDF, CETAK -->
+      <div class="download-grid">
+        <button class="btn btn-word btn-lg" onclick="downloadWordDocx()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download Word (.docx)
+        </button>
+
+        <button class="btn btn-pdf btn-lg" onclick="downloadPDF()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Download PDF (.pdf)
+        </button>
+
+        <button class="btn btn-secondary btn-lg" onclick="window.print()" title="Cetak langsung ke printer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Cetak
+        </button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: LIVE PREVIEW OF WORD / PDF DOCUMENT -->
+    <div class="preview-column">
+      <div class="preview-sticky">
+        <div class="preview-header">
+          <h2>📄 Live Preview Kertas (A4)</h2>
+          <span style="font-size: 0.8rem; color: var(--gray-600);">Hasil pratinjau sesuai file Word & PDF</span>
+        </div>
+
+        <!-- A4 PAPER PREVIEW -->
+        <div class="a4-paper" id="printArea">
+          <div class="paper-title" id="previewTitle">Agustus 2026</div>
+
+          <!-- Section 1 -->
+          <table class="paper-table">
+            <tbody>
+              <tr>
+                <td class="col-desc" id="prevRowSaldoKemarinLabel">Sisa Saldo Bulan juni 2026</td>
+                <td class="col-eq">=</td>
+                <td class="col-rp">Rp.</td>
+                <td class="col-amt" id="prevRowSaldoKemarinVal">-166.000</td>
+              </tr>
+              <tr class="sum-line">
+                <td class="col-desc" id="prevRowSaldoMasukLabel">Saldo Masuk Bulan Agustus</td>
+                <td class="col-eq">=</td>
+                <td class="col-rp">Rp.</td>
+                <td class="col-amt" id="prevRowSaldoMasukVal">1.600.000</td>
+              </tr>
+              <tr class="row-bold">
+                <td class="col-desc">Total</td>
+                <td class="col-eq">=</td>
+                <td class="col-rp">Rp.</td>
+                <td class="col-amt" id="prevRowTotalPemasukan">1.434.000</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Section 2: Pengeluaran -->
+          <table class="paper-table" id="prevTablePengeluaran">
+            <tbody>
+              <!-- Diisi oleh JS -->
+            </tbody>
+          </table>
+
+          <!-- Section 3: Rekapitulasi -->
+          <table class="paper-table">
+            <tbody>
+              <tr>
+                <td class="col-desc">Pemasukan</td>
+                <td class="col-eq">=</td>
+                <td class="col-rp">Rp.</td>
+                <td class="col-amt" id="prevRekapPemasukan">1.434.000</td>
+              </tr>
+              <tr class="sum-line">
+                <td class="col-desc">Pengeluaran</td>
+                <td class="col-eq">=</td>
+                <td class="col-rp">Rp.</td>
+                <td class="col-amt" id="prevRekapPengeluaran">2.022.000</td>
+              </tr>
+              <tr class="row-bold">
+                <td class="col-desc"></td>
+                <td class="col-eq"></td>
+                <td class="col-rp">Rp.</td>
+                <td class="col-amt" id="prevRekapSaldoAkhir">-588.000</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Signatures -->
+          <div class="signatures-block">
+            <div class="sig-col">
+              <div id="prevJabatanKiri">ketua</div>
+              <div class="sig-space"></div>
+              <div class="sig-name" id="prevNamaKiri">Syarif Hidayat</div>
+            </div>
+            <div class="sig-col">
+              <div id="prevJabatanKanan">Bendahara</div>
+              <div class="sig-space"></div>
+              <div class="sig-name" id="prevNamaKanan">Ahmad Rizal</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast">Pesan notifikasi</div>
+
+  <script>
+    // Data list pengeluaran
+    let listPengeluaran = [
+      { nama: "Aceng", nominal: 700000 },
+      { nama: "Didin", nominal: 150000 },
+      { nama: "Eko", nominal: 150000 },
+      { nama: "Bu Yam", nominal: 200000 },
+      { nama: "10 Dus Tens", nominal: 270000 },
+      { nama: "Bu Hamina", nominal: 200000 },
+      { nama: "Listrik", nominal: 352000 }
+    ];
+
+    const daftarBulan = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.className = "show";
+      setTimeout(() => { t.className = ""; }, 3000);
+    }
+
+    // Helper: format angka ke string rupiah dengan titik ribuan
+    function formatRibuan(num) {
+      if (num === null || num === undefined || isNaN(num)) return "0";
+      const isNeg = num < 0;
+      const abs = Math.abs(Math.round(num));
+      const formatted = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      return (isNeg ? "-" : "") + formatted;
+    }
+
+    // Helper: parse string rupiah input ke integer
+    function parseRibuan(str) {
+      if (!str) return 0;
+      const isNeg = str.toString().includes("-");
+      const clean = str.toString().replace(/[^\d]/g, "");
+      const val = parseInt(clean, 10);
+      if (isNaN(val)) return 0;
+      return isNeg ? -val : val;
+    }
+
+    // Money input formatter saat user mengetik
+    function handleMoneyInput(input) {
+      let raw = input.value;
+      const isNeg = raw.startsWith("-");
+      let digits = raw.replace(/[^\d]/g, "");
+      if (digits === "") {
+        input.value = isNeg ? "-" : "";
+        return;
+      }
+      let num = parseInt(digits, 10);
+      input.value = (isNeg ? "-" : "") + num.toLocaleString("id-ID");
+    }
+
+    // Auto update bulan kemarin saat bulan sekarang dipilih
+    function onBulanSekarangChange() {
+      const selected = document.getElementById("bulanSekarang").value;
+      const idx = daftarBulan.indexOf(selected);
+      if (idx !== -1) {
+        const prevIdx = (idx - 1 + 12) % 12;
+        document.getElementById("bulanKemarin").value = daftarBulan[prevIdx].toLowerCase();
+      }
+      updateAll();
+    }
+
+    // Render tabel pengeluaran di form input
+    function renderInputPengeluaran() {
+      const tbody = document.getElementById("bodyPengeluaran");
+      tbody.innerHTML = "";
+
+      listPengeluaran.forEach((item, index) => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>
+            <input type="text" value="${item.nama}" placeholder="Nama Pengeluaran (mis: Aceng)" 
+              id="nama_pengeluaran_${index}"
+              oninput="listPengeluaran[${index}].nama = this.value; updatePreview(); saveToLocalStorage()">
+          </td>
+          <td>
+            <div class="input-money-wrapper">
+              <span class="currency-prefix">Rp.</span>
+              <input type="text" value="${formatRibuan(item.nominal)}" placeholder="0" 
+                id="nominal_pengeluaran_${index}"
+                oninput="handleMoneyInput(this); listPengeluaran[${index}].nominal = parseRibuan(this.value); updateAll(); saveToLocalStorage()"
+                onkeydown="handleRowEnter(event, ${index})">
+            </div>
+          </td>
+          <td style="text-align: center;">
+            <button class="btn-delete-row" title="Hapus baris ini" onclick="hapusPengeluaran(${index})">
+              🗑️
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("countPengeluaran").textContent = `${listPengeluaran.length} item`;
+    }
+
+    // Shortcut: tekan Enter pada kolom nominal untuk langsung buat baris baru
+    function handleRowEnter(event, index) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        tambahPengeluaran();
+      }
+    }
+
+    function tambahPengeluaran() {
+      listPengeluaran.push({ nama: "", nominal: 0 });
+      renderInputPengeluaran();
+      updateAll();
+      saveToLocalStorage();
+      setTimeout(() => {
+        const newIdx = listPengeluaran.length - 1;
+        const newEl = document.getElementById(`nama_pengeluaran_${newIdx}`);
+        if (newEl) newEl.focus();
+      }, 50);
+    }
+
+    function hapusPengeluaran(index) {
+      listPengeluaran.splice(index, 1);
+      renderInputPengeluaran();
+      updateAll();
+      saveToLocalStorage();
+    }
+
+    // Update semua kalkulasi & tampilan preview
+    function updateAll() {
+      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
+      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
+      const totalPemasukan = saldoKemarin + saldoMasuk;
+
+      let totalPengeluaran = 0;
+      listPengeluaran.forEach(p => {
+        totalPengeluaran += (p.nominal || 0);
+      });
+
+      const saldoAkhir = totalPemasukan - totalPengeluaran;
+
+      // Update badge stat di form
+      document.getElementById("displayTotalPemasukan").textContent = "Rp. " + formatRibuan(totalPemasukan);
+      document.getElementById("displayTotalPengeluaran").textContent = "Rp. " + formatRibuan(totalPengeluaran);
+      
+      const elSaldoAkhir = document.getElementById("displaySaldoAkhir");
+      elSaldoAkhir.textContent = "Rp. " + formatRibuan(saldoAkhir);
+      
+      const badgeSaldo = document.getElementById("badgeSaldoAkhir");
+      if (saldoAkhir < 0) {
+        badgeSaldo.className = "stat-badge highlight-red";
+      } else {
+        badgeSaldo.className = "stat-badge highlight";
+      }
+
+      updatePreview(totalPemasukan, totalPengeluaran, saldoAkhir);
+      saveToLocalStorage();
+    }
+
+    // Update tampilan kertas preview
+    function updatePreview(totalPemasukan, totalPengeluaran, saldoAkhir) {
+      const bulanSekarang = document.getElementById("bulanSekarang").value;
+      const tahun = document.getElementById("tahun").value;
+      const bulanKemarin = document.getElementById("bulanKemarin").value;
+      const font = document.getElementById("fontDocx").value;
+
+      const printArea = document.getElementById("printArea");
+      printArea.style.fontFamily = font;
+
+      // Title
+      document.getElementById("previewTitle").textContent = `${bulanSekarang} ${tahun}`;
+
+      // Section 1
+      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
+      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
+      if (totalPemasukan === undefined) totalPemasukan = saldoKemarin + saldoMasuk;
+
+      document.getElementById("prevRowSaldoKemarinLabel").textContent = `Sisa Saldo Bulan ${bulanKemarin} ${tahun}`;
+      document.getElementById("prevRowSaldoKemarinVal").textContent = formatRibuan(saldoKemarin);
+
+      document.getElementById("prevRowSaldoMasukLabel").textContent = `Saldo Masuk Bulan ${bulanSekarang}`;
+      document.getElementById("prevRowSaldoMasukVal").textContent = formatRibuan(saldoMasuk);
+
+      document.getElementById("prevRowTotalPemasukan").textContent = formatRibuan(totalPemasukan);
+
+      // Section 2: Pengeluaran
+      const prevTable = document.getElementById("prevTablePengeluaran").querySelector("tbody");
+      prevTable.innerHTML = "";
+
+      if (totalPengeluaran === undefined) {
+        totalPengeluaran = listPengeluaran.reduce((sum, item) => sum + (item.nominal || 0), 0);
+      }
+      if (saldoAkhir === undefined) {
+        saldoAkhir = totalPemasukan - totalPengeluaran;
+      }
+
+      listPengeluaran.forEach((item, index) => {
+        const isLast = (index === listPengeluaran.length - 1);
+        const tr = document.createElement("tr");
+        if (isLast) tr.className = "sum-line";
+        tr.innerHTML = `
+          <td class="col-desc">${item.nama || "-"}</td>
+          <td class="col-eq">=</td>
+          <td class="col-rp">Rp.</td>
+          <td class="col-amt">${formatRibuan(item.nominal)}</td>
+        `;
+        prevTable.appendChild(tr);
+      });
+
+      // Baris total pengeluaran
+      const trTotalPengeluaran = document.createElement("tr");
+      trTotalPengeluaran.className = "row-bold";
+      trTotalPengeluaran.innerHTML = `
+        <td class="col-desc"></td>
+        <td class="col-eq"></td>
+        <td class="col-rp">Rp.</td>
+        <td class="col-amt">${formatRibuan(totalPengeluaran)}</td>
+      `;
+      prevTable.appendChild(trTotalPengeluaran);
+
+      // Section 3: Rekapitulasi
+      document.getElementById("prevRekapPemasukan").textContent = formatRibuan(totalPemasukan);
+      document.getElementById("prevRekapPengeluaran").textContent = formatRibuan(totalPengeluaran);
+      document.getElementById("prevRekapSaldoAkhir").textContent = formatRibuan(saldoAkhir);
+
+      // Signatures
+      document.getElementById("prevJabatanKiri").textContent = document.getElementById("jabatanKiri").value;
+      document.getElementById("prevNamaKiri").textContent = document.getElementById("namaKiri").value;
+      document.getElementById("prevJabatanKanan").textContent = document.getElementById("jabatanKanan").value;
+      document.getElementById("prevNamaKanan").textContent = document.getElementById("namaKanan").value;
+    }
+
+    // Fitur: Muat data contoh sama persis dengan foto user
+    function muatDataContoh() {
+      document.getElementById("bulanSekarang").value = "Agustus";
+      document.getElementById("tahun").value = "2026";
+      document.getElementById("bulanKemarin").value = "juni";
+      document.getElementById("inputSaldoKemarin").value = "-166.000";
+      document.getElementById("inputSaldoMasuk").value = "1.600.000";
+      document.getElementById("jabatanKiri").value = "ketua";
+      document.getElementById("namaKiri").value = "Syarif Hidayat";
+      document.getElementById("jabatanKanan").value = "Bendahara";
+      document.getElementById("namaKanan").value = "Ahmad Rizal";
+
+      listPengeluaran = [
+        { nama: "Aceng", nominal: 700000 },
+        { nama: "Didin", nominal: 150000 },
+        { nama: "Eko", nominal: 150000 },
+        { nama: "Bu Yam", nominal: 200000 },
+        { nama: "10 Dus Tens", nominal: 270000 },
+        { nama: "Bu Hamina", nominal: 200000 },
+        { nama: "Listrik", nominal: 352000 }
+      ];
+
+      renderInputPengeluaran();
+      updateAll();
+      saveToLocalStorage();
+      showToast("Data contoh berhasil dimuat!");
+    }
+
+    // Fitur: Lanjut ke Bulan Berikutnya
+    function lanjutBulanBerikutnya() {
+      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
+      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
+      const totalPemasukan = saldoKemarin + saldoMasuk;
+      const totalPengeluaran = listPengeluaran.reduce((sum, item) => sum + (item.nominal || 0), 0);
+      const saldoAkhir = totalPemasukan - totalPengeluaran;
+
+      const konfirmasi = confirm(
+        `Siap membuat laporan untuk bulan berikutnya?\n\n` +
+        `• Sisa Saldo Akhir bulan ini (${formatRibuan(saldoAkhir)}) otomatis akan menjadi Sisa Saldo Bulan Kemarin.\n` +
+        `• Daftar pengeluaran akan dikosongkan untuk input bulan baru.\n` +
+        `• Nama Ketua & Bendahara tetap tersimpan.`
+      );
+
+      if (!konfirmasi) return;
+
+      const bulanSekarang = document.getElementById("bulanSekarang").value;
+      const idx = daftarBulan.indexOf(bulanSekarang);
+      let nextMonthIdx = (idx + 1) % 12;
+      let nextMonth = daftarBulan[nextMonthIdx];
+      let tahun = parseInt(document.getElementById("tahun").value, 10);
+      if (nextMonthIdx === 0) tahun += 1;
+
+      document.getElementById("bulanSekarang").value = nextMonth;
+      document.getElementById("tahun").value = tahun;
+      document.getElementById("bulanKemarin").value = bulanSekarang.toLowerCase();
+      document.getElementById("inputSaldoKemarin").value = formatRibuan(saldoAkhir);
+      document.getElementById("inputSaldoMasuk").value = "0";
+
+      listPengeluaran = [
+        { nama: "", nominal: 0 }
+      ];
+
+      renderInputPengeluaran();
+      updateAll();
+      saveToLocalStorage();
+      showToast(`Beralih ke periode ${nextMonth} ${tahun}!`);
+    }
+
+    // Simpan ke LocalStorage
+    function saveToLocalStorage() {
+      const data = {
+        bulanSekarang: document.getElementById("bulanSekarang").value,
+        tahun: document.getElementById("tahun").value,
+        bulanKemarin: document.getElementById("bulanKemarin").value,
+        saldoKemarin: document.getElementById("inputSaldoKemarin").value,
+        saldoMasuk: document.getElementById("inputSaldoMasuk").value,
+        fontDocx: document.getElementById("fontDocx").value,
+        jabatanKiri: document.getElementById("jabatanKiri").value,
+        namaKiri: document.getElementById("namaKiri").value,
+        jabatanKanan: document.getElementById("jabatanKanan").value,
+        namaKanan: document.getElementById("namaKanan").value,
+        pengeluaran: listPengeluaran
+      };
+      try {
+        localStorage.setItem("laporan_keuangan_draft", JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    // Muat dari LocalStorage saat halaman dibuka
+    function loadFromLocalStorage() {
+      try {
+        const saved = localStorage.getItem("laporan_keuangan_draft");
+        if (saved) {
+          const data = JSON.parse(saved);
+          if (data.bulanSekarang) document.getElementById("bulanSekarang").value = data.bulanSekarang;
+          if (data.tahun) document.getElementById("tahun").value = data.tahun;
+          if (data.bulanKemarin) document.getElementById("bulanKemarin").value = data.bulanKemarin;
+          if (data.saldoKemarin !== undefined) document.getElementById("inputSaldoKemarin").value = data.saldoKemarin;
+          if (data.saldoMasuk !== undefined) document.getElementById("inputSaldoMasuk").value = data.saldoMasuk;
+          if (data.fontDocx) document.getElementById("fontDocx").value = data.fontDocx;
+          if (data.jabatanKiri) document.getElementById("jabatanKiri").value = data.jabatanKiri;
+          if (data.namaKiri) document.getElementById("namaKiri").value = data.namaKiri;
+          if (data.jabatanKanan) document.getElementById("jabatanKanan").value = data.jabatanKanan;
+          if (data.namaKanan) document.getElementById("namaKanan").value = data.namaKanan;
+          if (Array.isArray(data.pengeluaran) && data.pengeluaran.length > 0) {
+            listPengeluaran = data.pengeluaran;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Helper unduh file blob
+    function triggerDownload(blob, fileName) {
+      if (typeof window.saveAs === "function") {
+        window.saveAs(blob, fileName);
+        return;
+      }
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 150);
+    }
+
+    // ==========================================
+    // 1. GENERATE DAN DOWNLOAD FILE WORD (.DOCX)
+    // ==========================================
+    async function downloadWordDocx() {
+      if (!window.docx) {
+        alert("Library docx belum siap. Pastikan file docx.umd.js tersedia.");
+        return;
+      }
+
+      showToast("Sedang menyiapkan file Word...");
+
+      const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType } = window.docx;
+
+      const bulanSekarang = document.getElementById("bulanSekarang").value;
+      const tahun = document.getElementById("tahun").value;
+      const bulanKemarin = document.getElementById("bulanKemarin").value;
+      const fontName = document.getElementById("fontDocx").value || "Arial";
+
+      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
+      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
+      const totalPemasukan = saldoKemarin + saldoMasuk;
+
+      const jabatanKiri = document.getElementById("jabatanKiri").value || "ketua";
+      const namaKiri = document.getElementById("namaKiri").value || "Syarif Hidayat";
+      const jabatanKanan = document.getElementById("jabatanKanan").value || "Bendahara";
+      const namaKanan = document.getElementById("namaKanan").value || "Ahmad Rizal";
+
+      const noBorder = {
+        top: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        left: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        right: { style: BorderStyle.NONE, size: 0, color: "auto" },
+      };
+
+      const bottomBorder = {
+        top: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        bottom: { style: BorderStyle.SINGLE, size: 12, color: "000000" },
+        left: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        right: { style: BorderStyle.NONE, size: 0, color: "auto" },
+      };
+
+      const fontSize = 11;
+      const fontPt = fontSize * 2;
+
+      // Lebar 4 kolom: Deskripsi, =, Rp., Nominal
+      const colWidths = [4500, 500, 700, 2000];
+
+      function createRow(label, eq, rp, val, isUnderlined, isBold) {
+        const borderCol1 = noBorder;
+        const borderColCalc = isUnderlined ? bottomBorder : noBorder;
+
+        return new TableRow({
+          children: [
+            new TableCell({
+              width: { size: colWidths[0], type: WidthType.DXA },
+              borders: borderCol1,
+              children: [new Paragraph({
+                children: [new TextRun({ text: label, bold: isBold, font: fontName, size: fontPt })],
+                alignment: AlignmentType.LEFT,
+              })],
+            }),
+            new TableCell({
+              width: { size: colWidths[1], type: WidthType.DXA },
+              borders: borderColCalc,
+              children: [new Paragraph({
+                children: [new TextRun({ text: eq, bold: isBold, font: fontName, size: fontPt })],
+                alignment: AlignmentType.CENTER,
+              })],
+            }),
+            new TableCell({
+              width: { size: colWidths[2], type: WidthType.DXA },
+              borders: borderColCalc,
+              children: [new Paragraph({
+                children: [new TextRun({ text: rp, bold: isBold, font: fontName, size: fontPt })],
+                alignment: AlignmentType.LEFT,
+              })],
+            }),
+            new TableCell({
+              width: { size: colWidths[3], type: WidthType.DXA },
+              borders: borderColCalc,
+              children: [new Paragraph({
+                children: [new TextRun({ text: val, bold: isBold, font: fontName, size: fontPt })],
+                alignment: AlignmentType.RIGHT,
+              })],
+            }),
+          ]
+        });
+      }
+
+      // 1. Tabel Saldo & Pemasukan
+      const rowsTabel1 = [
+        createRow(`Sisa Saldo Bulan ${bulanKemarin} ${tahun}`, "=", "Rp.", formatRibuan(saldoKemarin), false, false),
+        createRow(`Saldo Masuk Bulan ${bulanSekarang}`, "=", "Rp.", formatRibuan(saldoMasuk), true, false),
+        createRow("Total", "=", "Rp.", formatRibuan(totalPemasukan), false, true),
+      ];
+
+      // 2. Tabel Pengeluaran
+      const rowsTabel2 = [];
+      let totalPengeluaran = 0;
+      listPengeluaran.forEach((item, index) => {
+        const isLast = (index === listPengeluaran.length - 1);
+        totalPengeluaran += (item.nominal || 0);
+        rowsTabel2.push(
+          createRow(item.nama, "=", "Rp.", formatRibuan(item.nominal), isLast, false)
+        );
+      });
+      rowsTabel2.push(
+        createRow("", "", "Rp.", formatRibuan(totalPengeluaran), false, true)
+      );
+
+      // 3. Tabel Rekapitulasi
+      const saldoAkhir = totalPemasukan - totalPengeluaran;
+      const rowsTabel3 = [
+        createRow("Pemasukan", "=", "Rp.", formatRibuan(totalPemasukan), false, false),
+        createRow("Pengeluaran", "=", "Rp.", formatRibuan(totalPengeluaran), true, false),
+        createRow("", "", "Rp.", formatRibuan(saldoAkhir), false, true),
+      ];
+
+      const table1 = new Table({
+        width: { size: 7700, type: WidthType.DXA },
+        rows: rowsTabel1,
+      });
+
+      const table2 = new Table({
+        width: { size: 7700, type: WidthType.DXA },
+        rows: rowsTabel2,
+      });
+
+      const table3 = new Table({
+        width: { size: 7700, type: WidthType.DXA },
+        rows: rowsTabel3,
+      });
+
+      // 4. Tabel Tanda Tangan
+      const sigColWidth = 4300;
+      const sigTable = new Table({
+        width: { size: 8600, type: WidthType.DXA },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: sigColWidth, type: WidthType.DXA },
+                borders: noBorder,
+                children: [new Paragraph({
+                  children: [new TextRun({ text: jabatanKiri, bold: true, font: fontName, size: fontPt })],
+                  alignment: AlignmentType.CENTER,
+                })],
+              }),
+              new TableCell({
+                width: { size: sigColWidth, type: WidthType.DXA },
+                borders: noBorder,
+                children: [new Paragraph({
+                  children: [new TextRun({ text: jabatanKanan, bold: true, font: fontName, size: fontPt })],
+                  alignment: AlignmentType.CENTER,
+                })],
+              }),
+            ]
+          }),
+          // Ruang tanda tangan
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: sigColWidth, type: WidthType.DXA },
+                borders: noBorder,
+                children: [
+                  new Paragraph({ text: "" }),
+                  new Paragraph({ text: "" }),
+                  new Paragraph({ text: "" }),
+                  new Paragraph({ text: "" }),
+                ],
+              }),
+              new TableCell({
+                width: { size: sigColWidth, type: WidthType.DXA },
+                borders: noBorder,
+                children: [
+                  new Paragraph({ text: "" }),
+                  new Paragraph({ text: "" }),
+                  new Paragraph({ text: "" }),
+                  new Paragraph({ text: "" }),
+                ],
+              }),
+            ]
+          }),
+          // Baris nama
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: sigColWidth, type: WidthType.DXA },
+                borders: noBorder,
+                children: [new Paragraph({
+                  children: [new TextRun({ text: namaKiri, bold: true, font: fontName, size: fontPt })],
+                  alignment: AlignmentType.CENTER,
+                })],
+              }),
+              new TableCell({
+                width: { size: sigColWidth, type: WidthType.DXA },
+                borders: noBorder,
+                children: [new Paragraph({
+                  children: [new TextRun({ text: namaKanan, bold: true, font: fontName, size: fontPt })],
+                  alignment: AlignmentType.CENTER,
+                })],
+              }),
+            ]
+          }),
+        ]
+      });
+
+      // Susun Dokumen Word
+      const doc = new Document({
+        sections: [{
+          properties: {
+            page: {
+              margin: {
+                top: 1440,
+                right: 1440,
+                bottom: 1440,
+                left: 1440,
+              }
+            }
+          },
+          children: [
+            // Judul Header Tengah
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `${bulanSekarang} ${tahun}`,
+                  bold: true,
+                  size: 28,
+                  font: fontName,
+                })
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 360 },
+            }),
+
+            // Section 1: Saldo & Pemasukan
+            table1,
+            new Paragraph({ spacing: { after: 300 } }),
+
+            // Section 2: Daftar Pengeluaran
+            table2,
+            new Paragraph({ spacing: { after: 300 } }),
+
+            // Section 3: Rekapitulasi Saldo
+            table3,
+            new Paragraph({ spacing: { after: 600 } }),
+
+            // Section 4: Tanda Tangan
+            sigTable,
+          ]
+        }]
+      });
+
+      try {
+        const blob = await Packer.toBlob(doc);
+        const fileName = `Laporan_Keuangan_${bulanSekarang}_${tahun}.docx`;
+        triggerDownload(blob, fileName);
+        showToast("File Word (.docx) berhasil diunduh!");
+      } catch (err) {
+        console.error(err);
+        alert("Terjadi kesalahan saat membuat file Word: " + err.message);
+      }
+    }
+
+    // ==========================================
+    // 2. GENERATE DAN DOWNLOAD FILE PDF (.PDF)
+    // ==========================================
+    function downloadPDF() {
+      if (typeof window.html2pdf === "undefined") {
+        alert("Library PDF sedang dimuat, silakan coba beberapa saat lagi.");
+        return;
+      }
+
+      const bulanSekarang = document.getElementById("bulanSekarang").value;
+      const tahun = document.getElementById("tahun").value;
+      const element = document.getElementById("printArea");
+
+      showToast("Sedang membuat file PDF...");
+
+      // Buat kloning elemen agar tampilan live preview tidak terganggu
+      const clone = element.cloneNode(true);
+      clone.style.boxShadow = "none";
+      clone.style.border = "none";
+      clone.style.borderRadius = "0";
+      clone.style.width = "720px";
+      clone.style.padding = "25px 30px";
+      clone.style.background = "#ffffff";
+
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "fixed";
+      wrapper.style.left = "-9999px";
+      wrapper.style.top = "0";
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      const opt = {
+        margin: [10, 10, 10, 10], // mm
+        filename: `Laporan_Keuangan_${bulanSekarang}_${tahun}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      };
+
+      window.html2pdf().set(opt).from(clone).save()
+        .then(() => {
+          if (wrapper.parentNode) document.body.removeChild(wrapper);
+          showToast("File PDF (.pdf) berhasil diunduh!");
+        })
+        .catch((err) => {
+          if (wrapper.parentNode) document.body.removeChild(wrapper);
+          console.error(err);
+          alert("Gagal membuat PDF: " + err.message);
+        });
+    }
+
+    // Inisialisasi awal saat halaman dibuka
+    window.addEventListener("DOMContentLoaded", () => {
+      loadFromLocalStorage();
+      renderInputPengeluaran();
+      updateAll();
+    });
+  </script>
+</body>
+</html>
