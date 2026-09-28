@@ -1,33 +1,98 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generator Laporan Keuangan Bulanan - Word (.docx) & PDF (.pdf)</title>
+  
+  <!-- Anti-flicker theme loader -->
+  <script>
+    (function() {
+      try {
+        const saved = localStorage.getItem('laporan_theme');
+        if (saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <script src="docx.umd.js"></script>
   <script src="FileSaver.min.js"></script>
   <script src="html2pdf.bundle.min.js"></script>
+
   <style>
     :root {
-      --primary: #1d4ed8;
-      --primary-hover: #1e40af;
+      /* Shared Accent Colors */
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
       --primary-light: #eff6ff;
       --success: #15803d;
       --success-hover: #166534;
       --pdf-red: #dc2626;
       --pdf-red-hover: #b91c1c;
-      --gray-50: #f8fafc;
-      --gray-100: #f1f5f9;
-      --gray-200: #e2e8f0;
-      --gray-300: #cbd5e1;
-      --gray-400: #94a3b8;
-      --gray-600: #475569;
-      --gray-700: #334155;
-      --gray-800: #1e293b;
-      --gray-900: #0f172a;
+
+      /* Light Mode Variables (Default) */
+      --bg-body: #f1f5f9;
+      --bg-header: #ffffff;
+      --bg-card: #ffffff;
+      --bg-input: #ffffff;
+      --bg-table-th: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-input: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-label: #334155;
+      --card-title: #0f172a;
+
+      --stat-bg: #f8fafc;
+      --stat-border: #e2e8f0;
+      --stat-highlight-bg: #eff6ff;
+      --stat-highlight-border: #bfdbfe;
+      --stat-red-bg: #fef2f2;
+      --stat-red-border: #fecaca;
+
+      --btn-secondary-bg: #ffffff;
+      --btn-secondary-border: #cbd5e1;
+      --btn-secondary-text: #334155;
+      --btn-secondary-hover-bg: #f8fafc;
+      --btn-secondary-hover-border: #94a3b8;
+
       --radius: 10px;
-      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
       --font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Dark Mode Theme Variables */
+    [data-theme="dark"] {
+      --bg-body: #0a0f1d;
+      --bg-header: #121a2d;
+      --bg-card: #121a2d;
+      --bg-input: #0b1120;
+      --bg-table-th: #0b1120;
+      --border-color: #23314d;
+      --border-input: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-label: #cbd5e1;
+      --card-title: #ffffff;
+
+      --stat-bg: #0b1120;
+      --stat-border: #23314d;
+      --stat-highlight-bg: rgba(37, 99, 235, 0.16);
+      --stat-highlight-border: rgba(37, 99, 235, 0.45);
+      --stat-red-bg: rgba(220, 38, 38, 0.16);
+      --stat-red-border: rgba(220, 38, 38, 0.45);
+
+      --btn-secondary-bg: #1a243a;
+      --btn-secondary-border: #334155;
+      --btn-secondary-text: #e2e8f0;
+      --btn-secondary-hover-bg: #22304d;
+      --btn-secondary-hover-border: #475569;
+
+      --shadow: 0 6px 14px -1px rgb(0 0 0 / 0.45);
     }
 
     * {
@@ -38,15 +103,16 @@
 
     body {
       font-family: var(--font-family);
-      background-color: #f1f5f9;
-      color: var(--gray-800);
+      background-color: var(--bg-body);
+      color: var(--text-main);
       line-height: 1.5;
       min-height: 100vh;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
     header {
-      background: white;
-      border-bottom: 1px solid var(--gray-200);
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-color);
       padding: 14px 28px;
       display: flex;
       justify-content: space-between;
@@ -54,7 +120,8 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+      box-shadow: 0 1px 4px 0 rgb(0 0 0 / 0.08);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
     .brand {
@@ -74,18 +141,20 @@
       justify-content: center;
       font-weight: 800;
       font-size: 20px;
-      box-shadow: 0 2px 4px rgba(29, 78, 216, 0.3);
+      box-shadow: 0 2px 6px rgba(29, 78, 216, 0.4);
     }
 
     .brand h1 {
       font-size: 1.15rem;
       font-weight: 700;
-      color: var(--gray-900);
+      color: var(--text-main);
+      transition: color 0.25s ease;
     }
 
     .brand p {
       font-size: 0.8rem;
-      color: var(--gray-600);
+      color: var(--text-muted);
+      transition: color 0.25s ease;
     }
 
     .header-actions {
@@ -112,24 +181,26 @@
 
     /* CARD STYLING */
     .card {
-      background: white;
+      background: var(--bg-card);
       border-radius: var(--radius);
-      border: 1px solid var(--gray-200);
+      border: 1px solid var(--border-color);
       box-shadow: var(--shadow);
       padding: 20px;
       margin-bottom: 20px;
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     }
 
     .card-title {
       font-size: 1rem;
       font-weight: 700;
-      color: var(--gray-900);
+      color: var(--card-title);
       margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 8px;
-      border-bottom: 2px solid var(--gray-100);
+      border-bottom: 2px solid var(--border-color);
       padding-bottom: 10px;
+      transition: color 0.25s ease, border-color 0.25s ease;
     }
 
     .card-title .badge {
@@ -139,6 +210,11 @@
       font-weight: 600;
       padding: 2px 10px;
       border-radius: 999px;
+    }
+
+    [data-theme="dark"] .card-title .badge {
+      background: rgba(37, 99, 235, 0.25);
+      color: #93c5fd;
     }
 
     /* FORM STYLES */
@@ -162,14 +238,16 @@
       display: block;
       font-size: 0.825rem;
       font-weight: 600;
-      color: var(--gray-700);
+      color: var(--text-label);
       margin-bottom: 6px;
+      transition: color 0.25s ease;
     }
 
     .hint {
       font-size: 0.75rem;
-      color: var(--gray-600);
+      color: var(--text-muted);
       margin-top: 4px;
+      transition: color 0.25s ease;
     }
 
     input[type="text"],
@@ -178,18 +256,18 @@
       width: 100%;
       padding: 9px 12px;
       border-radius: 8px;
-      border: 1px solid var(--gray-300);
+      border: 1px solid var(--border-input);
       font-size: 0.875rem;
-      color: var(--gray-900);
+      color: var(--text-main);
       outline: none;
-      transition: all 0.15s ease;
-      background: white;
+      transition: all 0.2s ease;
+      background: var(--bg-input);
       font-family: inherit;
     }
 
     input:focus, select:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
     }
 
     .input-money-wrapper {
@@ -203,8 +281,9 @@
       left: 12px;
       font-size: 0.85rem;
       font-weight: 600;
-      color: var(--gray-600);
+      color: var(--text-muted);
       pointer-events: none;
+      transition: color 0.25s ease;
     }
 
     .input-money-wrapper input {
@@ -222,15 +301,16 @@
     }
 
     .expense-table th {
-      background: var(--gray-50);
+      background: var(--bg-table-th);
       padding: 8px 10px;
       font-size: 0.75rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--gray-600);
+      color: var(--text-muted);
       text-align: left;
-      border-bottom: 1px solid var(--gray-200);
+      border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
     }
 
     .expense-table td {
@@ -254,7 +334,7 @@
     }
 
     .btn-delete-row:hover {
-      background: #fef2f2;
+      background: rgba(220, 38, 38, 0.15);
     }
 
     /* BUTTONS */
@@ -269,7 +349,7 @@
       border-radius: 8px;
       border: 1px solid transparent;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
       text-decoration: none;
       font-family: inherit;
     }
@@ -277,7 +357,7 @@
     .btn-word {
       background: #1d4ed8;
       color: white;
-      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
     }
     .btn-word:hover {
       background: #1e40af;
@@ -286,29 +366,41 @@
     .btn-pdf {
       background: #dc2626;
       color: white;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
     }
     .btn-pdf:hover {
       background: #b91c1c;
     }
 
     .btn-secondary {
-      background: white;
-      color: var(--gray-700);
-      border-color: var(--gray-300);
+      background: var(--btn-secondary-bg);
+      color: var(--btn-secondary-text);
+      border-color: var(--btn-secondary-border);
     }
     .btn-secondary:hover {
-      background: var(--gray-50);
-      border-color: var(--gray-400);
+      background: var(--btn-secondary-hover-bg);
+      border-color: var(--btn-secondary-hover-border);
+    }
+
+    .btn-theme-toggle {
+      background: var(--btn-secondary-bg);
+      color: var(--btn-secondary-text);
+      border: 1px solid var(--btn-secondary-border);
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+    .btn-theme-toggle:hover {
+      background: var(--btn-secondary-hover-bg);
+      border-color: var(--btn-secondary-hover-border);
     }
 
     .btn-danger {
-      background: white;
+      background: transparent;
       color: var(--pdf-red);
-      border-color: #fca5a5;
+      border-color: rgba(220, 38, 38, 0.4);
     }
     .btn-danger:hover {
-      background: #fef2f2;
+      background: rgba(220, 38, 38, 0.12);
     }
 
     .btn-sm {
@@ -331,35 +423,39 @@
       justify-content: space-between;
       align-items: center;
       padding: 10px 14px;
-      background: var(--gray-50);
+      background: var(--stat-bg);
       border-radius: 8px;
       margin-bottom: 8px;
       font-size: 0.85rem;
-      border: 1px solid var(--gray-200);
+      border: 1px solid var(--stat-border);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
     .stat-badge.highlight {
-      background: #eff6ff;
-      border-color: #bfdbfe;
+      background: var(--stat-highlight-bg);
+      border-color: var(--stat-highlight-border);
     }
 
     .stat-badge.highlight-red {
-      background: #fef2f2;
-      border-color: #fecaca;
+      background: var(--stat-red-bg);
+      border-color: var(--stat-red-border);
     }
 
     .stat-badge .stat-label {
       font-weight: 600;
-      color: var(--gray-700);
+      color: var(--text-label);
+      transition: color 0.25s ease;
     }
 
     .stat-badge .stat-value {
       font-weight: 700;
       font-family: monospace;
       font-size: 1rem;
+      color: var(--text-main);
+      transition: color 0.25s ease;
     }
 
-    /* PREVIEW PANE (A4 PAPER LOOK) */
+    /* PREVIEW PANE CONTAINER */
     .preview-sticky {
       position: sticky;
       top: 86px;
@@ -375,35 +471,59 @@
     .preview-header h2 {
       font-size: 1rem;
       font-weight: 700;
-      color: var(--gray-900);
+      color: var(--text-main);
+      transition: color 0.25s ease;
     }
 
+    .preview-header span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      transition: color 0.25s ease;
+    }
+
+    /* =========================================================================
+       CRITICAL: AREA PREVIEW A4 HARUS SELALU PUTIH DENGAN TEKS HITAM
+       (TIDAK TERPENGARUH DARK MODE)
+       ========================================================================= */
     .a4-paper {
-      background: white;
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #000000 !important;
       width: 100%;
       min-height: 720px;
       padding: 44px 50px;
       border-radius: 8px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--gray-300);
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1) !important;
       font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-      color: #000;
       font-size: 13.5px;
       line-height: 1.45;
       position: relative;
       box-sizing: border-box;
+      transition: box-shadow 0.25s ease, border-color 0.25s ease;
     }
 
-    /* State khusus saat PDF di-generate agar hasil canvas 100% bersih tanpa bayangan */
-    .a4-paper.pdf-exporting {
-      box-shadow: none !important;
-      border: none !important;
-      border-radius: 0 !important;
-      background: #ffffff !important;
-      margin: 0 !important;
+    /* Di Dark Mode, berikan border & shadow yang jelas agar kertas A4 terlihat tegas */
+    [data-theme="dark"] .a4-paper {
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
     }
 
-    .paper-title {
+    /* Seluruh elemen di dalam kertas A4 terkunci warna hitam di atas putih */
+    .a4-paper,
+    .a4-paper *,
+    .a4-paper .paper-title,
+    .a4-paper .paper-subtitle,
+    .a4-paper table,
+    .a4-paper tr,
+    .a4-paper td,
+    .a4-paper .sig-name,
+    .a4-paper div {
+      color: #000000 !important;
+      background-color: transparent !important;
+    }
+
+    .a4-paper .paper-title {
       text-align: center;
       font-size: 18px;
       font-weight: bold;
@@ -411,15 +531,15 @@
       text-transform: capitalize;
     }
 
-    .paper-subtitle {
+    .a4-paper .paper-subtitle {
       text-align: center;
       font-size: 13.5px;
       font-weight: 500;
-      color: #111;
+      color: #111111 !important;
       margin-bottom: 24px;
     }
 
-    .paper-table {
+    .a4-paper .paper-table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 22px;
@@ -427,12 +547,12 @@
       table-layout: fixed;
     }
 
-    .paper-table td {
+    .a4-paper .paper-table td {
       padding: 3.5px 0;
       vertical-align: bottom;
     }
 
-    .paper-table .col-desc {
+    .a4-paper .paper-table .col-desc {
       width: 52%;
       text-align: left;
       overflow: hidden;
@@ -440,35 +560,35 @@
       white-space: nowrap;
     }
 
-    .paper-table .col-eq {
+    .a4-paper .paper-table .col-eq {
       width: 8%;
       text-align: center;
     }
 
-    .paper-table .col-rp {
+    .a4-paper .paper-table .col-rp {
       width: 8%;
       text-align: left;
     }
 
-    .paper-table .col-amt {
+    .a4-paper .paper-table .col-amt {
       width: 32%;
       text-align: right;
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
     }
 
-    .sum-line td.col-eq,
-    .sum-line td.col-rp,
-    .sum-line td.col-amt {
-      border-bottom: 1.5px solid #000;
+    .a4-paper .sum-line td.col-eq,
+    .a4-paper .sum-line td.col-rp,
+    .a4-paper .sum-line td.col-amt {
+      border-bottom: 1.5px solid #000000 !important;
       padding-bottom: 3.5px;
     }
 
-    .row-bold {
+    .a4-paper .row-bold {
       font-weight: bold;
     }
 
-    .signatures-block {
+    .a4-paper .signatures-block {
       margin-top: 48px;
       display: flex;
       justify-content: space-between;
@@ -476,16 +596,26 @@
       padding: 0 10px;
     }
 
-    .sig-col {
+    .a4-paper .sig-col {
       width: 220px;
     }
 
-    .sig-space {
+    .a4-paper .sig-space {
       height: 80px;
     }
 
-    .sig-name {
+    .a4-paper .sig-name {
       font-weight: bold;
+    }
+
+    /* State khusus saat PDF di-generate */
+    .a4-paper.pdf-exporting {
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      margin: 0 !important;
     }
 
     /* ACTION DOWNLOAD BAR */
@@ -516,7 +646,7 @@
       right: 30px;
       bottom: 30px;
       font-size: 0.9rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
       transition: all 0.3s ease;
       opacity: 0;
     }
@@ -529,13 +659,14 @@
     /* PRINT STYLES */
     @media print {
       body {
-        background: white;
+        background: white !important;
       }
       body * {
         visibility: hidden;
       }
       #printArea, #printArea * {
         visibility: visible;
+        color: black !important;
       }
       #printArea {
         position: absolute;
@@ -544,8 +675,8 @@
         width: 100%;
         margin: 0;
         padding: 15mm 20mm;
-        box-shadow: none;
-        border: none;
+        box-shadow: none !important;
+        border: none !important;
       }
       header, .form-column, .preview-header, #toast, .download-grid {
         display: none !important;
@@ -565,6 +696,11 @@
       </div>
     </div>
     <div class="header-actions">
+      <!-- TOMBOL DARK MODE TOGGLE -->
+      <button class="btn btn-theme-toggle" id="btnThemeToggle" onclick="toggleTheme()" title="Beralih Mode Gelap/Terang">
+        <span id="themeIcon">🌙</span> <span id="themeLabel">Dark Mode</span>
+      </button>
+
       <button class="btn btn-secondary btn-sm" onclick="muatDataContoh()">
         <span>📋</span> Muat Contoh Sesuai Foto
       </button>
@@ -756,10 +892,10 @@
       <div class="preview-sticky">
         <div class="preview-header">
           <h2>📄 Live Preview Kertas (A4)</h2>
-          <span style="font-size: 0.8rem; color: var(--gray-600);">Tampilan kertas A4 identik dengan Word & PDF</span>
+          <span style="font-size: 0.8rem;">Tampilan kertas A4 identik dengan Word & PDF</span>
         </div>
 
-        <!-- A4 PAPER PREVIEW -->
+        <!-- A4 PAPER PREVIEW (SELALU PUTIH & TEKS HITAM) -->
         <div class="a4-paper" id="printArea">
           <div class="paper-title" id="previewTitle">Agustus 2026</div>
           <div class="paper-subtitle" id="previewSubJudul">Pengurus Musholla ....</div>
@@ -857,6 +993,42 @@
       "Januari", "Februari", "Maret", "April", "Mei", "Juni",
       "Juli", "Agustus", "September", "Oktober", "November", "Desember"
     ];
+
+    // ==========================================
+    // TEMA DARK / LIGHT MODE DENGAN LOCALSTORAGE
+    // ==========================================
+    function initTheme() {
+      const saved = localStorage.getItem("laporan_theme");
+      if (saved) {
+        applyTheme(saved);
+      } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        applyTheme("dark");
+      } else {
+        applyTheme("light");
+      }
+    }
+
+    function applyTheme(theme) {
+      if (theme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.getElementById("themeIcon").textContent = "☀️";
+        document.getElementById("themeLabel").textContent = "Light Mode";
+      } else {
+        document.documentElement.setAttribute("data-theme", "light");
+        document.getElementById("themeIcon").textContent = "🌙";
+        document.getElementById("themeLabel").textContent = "Dark Mode";
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute("data-theme") || "light";
+      const nextTheme = current === "dark" ? "light" : "dark";
+      applyTheme(nextTheme);
+      try {
+        localStorage.setItem("laporan_theme", nextTheme);
+      } catch (e) {}
+      showToast(nextTheme === "dark" ? "Mode Gelap aktif" : "Mode Terang aktif");
+    }
 
     function showToast(msg) {
       const t = document.getElementById("toast");
@@ -1226,7 +1398,7 @@
     }
 
     // =========================================================================
-    // 1. GENERATE DAN DOWNLOAD FILE WORD (.DOCX) - STRUKTUR IDENTIK PREVIEW
+    // 1. GENERATE DAN DOWNLOAD FILE WORD (.DOCX) - KERTAS PUTIH & TEKS HITAM
     // =========================================================================
     async function downloadWordDocx() {
       if (!window.docx) {
@@ -1522,7 +1694,7 @@
     }
 
     // =========================================================================
-    // 2. GENERATE DAN DOWNLOAD FILE PDF (.PDF) - MEMPERBAIKI MASALAH BLANK
+    // 2. GENERATE DAN DOWNLOAD FILE PDF (.PDF) - TETAP PUTIH BERSIH & TIDAK BLANK
     // =========================================================================
     async function downloadPDF() {
       if (typeof window.html2pdf === "undefined") {
@@ -1538,7 +1710,7 @@
         return;
       }
 
-      showToast("Sedang memproses file PDF...");
+      showToast("Sedang membuat file PDF...");
 
       // Tambahkan class khusus untuk menonaktifkan bayangan & border saat di-render canvas
       element.classList.add("pdf-exporting");
@@ -1575,6 +1747,7 @@
 
     // Inisialisasi awal saat halaman dibuka
     window.addEventListener("DOMContentLoaded", () => {
+      initTheme();
       loadFromLocalStorage();
       renderInputPengeluaran();
       updateAll();
