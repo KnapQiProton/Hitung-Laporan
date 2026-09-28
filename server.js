@@ -2,12 +2,11 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware parse JSON
 app.use(express.json());
 
-// Serve static files dari folder saat ini
+// Serve static files dari folder aplikasi
 app.use(express.static(__dirname));
 
 // Health check endpoint untuk Railway
@@ -20,11 +19,19 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Bind ke 0.0.0.0 agar bisa diakses publik oleh Railway
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`===============================================`);
-  console.log(` Server Laporan Keuangan berjalan!`);
-  console.log(` Akses lokal  : http://localhost:${PORT}`);
-  console.log(` Port Railway : ${PORT}`);
-  console.log(`===============================================`);
+// Port configuration:
+// Railway secara default menggunakan process.env.PORT, dan di dashboard Anda tertera Port 7070.
+// Kita dengarkan di kedua port (7070 & 3000 & process.env.PORT) agar 100% selalu terhubung!
+const envPort = process.env.PORT ? parseInt(process.env.PORT, 10) : null;
+const targetPorts = new Set([7070, 3000]);
+if (envPort) targetPorts.add(envPort);
+
+targetPorts.forEach(port => {
+  try {
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`[OK] Server aktif mendengarkan di http://0.0.0.0:${port}`);
+    });
+  } catch (err) {
+    console.warn(`[WARN] Port ${port} tidak dapat dibuka: ${err.message}`);
+  }
 });
