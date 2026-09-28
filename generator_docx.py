@@ -87,6 +87,7 @@ def generate_report_docx(data, output_filepath=None):
     nama_kanan = data.get("namaKanan", "Ahmad Rizal")
     
     font_name = data.get("fontDocx", "Arial")
+    sub_judul = data.get("subJudul", "Pengurus Musholla ....")
     font_size = 11
 
     doc = docx.Document()
@@ -101,11 +102,19 @@ def generate_report_docx(data, output_filepath=None):
     # 1. Header Judul
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_title.paragraph_format.space_after = Pt(20)
+    p_title.paragraph_format.space_after = Pt(3)
     run_title = p_title.add_run(f"{bulan_sekarang} {tahun}")
     run_title.bold = True
     run_title.font.name = font_name
     run_title.font.size = Pt(14)
+
+    # Sub-judul Pengurus Musholla ....
+    p_sub = doc.add_paragraph()
+    p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_sub.paragraph_format.space_after = Pt(18)
+    run_sub = p_sub.add_run(sub_judul)
+    run_sub.font.name = font_name
+    run_sub.font.size = Pt(11)
 
     # Lebar kolom dalam inci (Total ~ 5.5 inci)
     col_widths = [3.0, 0.4, 0.5, 1.4]
@@ -202,6 +211,7 @@ if __name__ == "__main__":
     contoh_data = {
         "bulanSekarang": "Agustus",
         "tahun": "2026",
+        "subJudul": "Pengurus Musholla ....",
         "bulanKemarin": "juni",
         "saldoKemarin": -166000,
         "saldoMasuk": 1600000,

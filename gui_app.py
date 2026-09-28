@@ -72,6 +72,11 @@ class LaporanApp(tk.Tk):
         ent_kemarin = ttk.Entry(f_periode, textvariable=self.var_bulan_kemarin, width=12)
         ent_kemarin.grid(row=0, column=5, sticky=tk.W, padx=5, pady=4)
 
+        ttk.Label(f_periode, text="Sub-Judul Lembaga:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=4)
+        self.var_sub_judul = tk.StringVar(value="Pengurus Musholla ....")
+        ent_sub = ttk.Entry(f_periode, textvariable=self.var_sub_judul, width=35)
+        ent_sub.grid(row=1, column=1, columnspan=3, sticky=tk.W, padx=5, pady=4)
+
         # SECTION 2: Saldo & Pemasukan
         f_saldo = ttk.LabelFrame(container, text=" 2. Saldo Awal & Saldo Masuk ", padding=10)
         f_saldo.pack(fill=tk.X, pady=(0, 10))
@@ -250,6 +255,7 @@ class LaporanApp(tk.Tk):
     def muat_contoh(self):
         self.var_bulan.set("Agustus")
         self.var_tahun.set("2026")
+        self.var_sub_judul.set("Pengurus Musholla ....")
         self.var_bulan_kemarin.set("juni")
         self.var_saldo_kemarin.set("-166000")
         self.var_saldo_masuk.set("1600000")
@@ -293,6 +299,7 @@ class LaporanApp(tk.Tk):
         data = {
             "bulanSekarang": bulan,
             "tahun": tahun,
+            "subJudul": self.var_sub_judul.get(),
             "bulanKemarin": self.var_bulan_kemarin.get(),
             "saldoKemarin": sk,
             "saldoMasuk": sm,

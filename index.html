@@ -391,21 +391,40 @@
       font-size: 13.5px;
       line-height: 1.45;
       position: relative;
+      box-sizing: border-box;
+    }
+
+    /* State khusus saat PDF di-generate agar hasil canvas 100% bersih tanpa bayangan */
+    .a4-paper.pdf-exporting {
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: #ffffff !important;
+      margin: 0 !important;
     }
 
     .paper-title {
       text-align: center;
-      font-size: 17px;
+      font-size: 18px;
       font-weight: bold;
-      margin-bottom: 30px;
+      margin-bottom: 4px;
       text-transform: capitalize;
+    }
+
+    .paper-subtitle {
+      text-align: center;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #111;
+      margin-bottom: 24px;
     }
 
     .paper-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
       font-size: 13.5px;
+      table-layout: fixed;
     }
 
     .paper-table td {
@@ -416,6 +435,9 @@
     .paper-table .col-desc {
       width: 52%;
       text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .paper-table .col-eq {
@@ -432,6 +454,7 @@
       width: 32%;
       text-align: right;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
 
     .sum-line td.col-eq,
@@ -446,7 +469,7 @@
     }
 
     .signatures-block {
-      margin-top: 50px;
+      margin-top: 48px;
       display: flex;
       justify-content: space-between;
       text-align: center;
@@ -557,10 +580,10 @@
     <!-- LEFT COLUMN: FORM INPUT -->
     <div class="form-column">
 
-      <!-- PERIODE -->
+      <!-- PERIODE & SUB-JUDUL -->
       <div class="card">
         <div class="card-title">
-          <span>📅</span> 1. Periode Laporan
+          <span>📅</span> 1. Periode & Sub-Judul Lembaga
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -584,6 +607,12 @@
             <label for="tahun">Tahun</label>
             <input type="number" id="tahun" value="2026" oninput="updateAll()">
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="subJudul">Sub-Judul / Nama Lembaga (di bawah judul)</label>
+          <input type="text" id="subJudul" value="Pengurus Musholla ...." placeholder="Contoh: Pengurus Musholla Al-Ikhlas" oninput="updateAll()">
+          <div class="hint">Muncul tepat di bawah bulan & tahun di Preview, Word, dan PDF</div>
         </div>
 
         <div class="form-row">
@@ -727,14 +756,15 @@
       <div class="preview-sticky">
         <div class="preview-header">
           <h2>📄 Live Preview Kertas (A4)</h2>
-          <span style="font-size: 0.8rem; color: var(--gray-600);">Hasil pratinjau sesuai file Word & PDF</span>
+          <span style="font-size: 0.8rem; color: var(--gray-600);">Tampilan kertas A4 identik dengan Word & PDF</span>
         </div>
 
         <!-- A4 PAPER PREVIEW -->
         <div class="a4-paper" id="printArea">
           <div class="paper-title" id="previewTitle">Agustus 2026</div>
+          <div class="paper-subtitle" id="previewSubJudul">Pengurus Musholla ....</div>
 
-          <!-- Section 1 -->
+          <!-- Section 1: Saldo Awal & Saldo Masuk -->
           <table class="paper-table">
             <tbody>
               <tr>
@@ -758,14 +788,14 @@
             </tbody>
           </table>
 
-          <!-- Section 2: Pengeluaran -->
+          <!-- Section 2: Daftar Pengeluaran -->
           <table class="paper-table" id="prevTablePengeluaran">
             <tbody>
               <!-- Diisi oleh JS -->
             </tbody>
           </table>
 
-          <!-- Section 3: Rekapitulasi -->
+          <!-- Section 3: Rekapitulasi (Pemasukan vs Pengeluaran) -->
           <table class="paper-table">
             <tbody>
               <tr>
@@ -789,7 +819,7 @@
             </tbody>
           </table>
 
-          <!-- Signatures -->
+          <!-- Signatures (Tanda Tangan) -->
           <div class="signatures-block">
             <div class="sig-col">
               <div id="prevJabatanKiri">ketua</div>
@@ -867,6 +897,51 @@
       input.value = (isNeg ? "-" : "") + num.toLocaleString("id-ID");
     }
 
+    // Single source of truth untuk state aplikasi
+    function getCurrentState() {
+      const bulanSekarang = document.getElementById("bulanSekarang").value;
+      const tahun = document.getElementById("tahun").value;
+      const subJudul = (document.getElementById("subJudul").value || "").trim() || "Pengurus Musholla ....";
+      const bulanKemarin = document.getElementById("bulanKemarin").value;
+      const fontName = document.getElementById("fontDocx").value || "Arial";
+
+      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
+      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
+      const totalPemasukan = saldoKemarin + saldoMasuk;
+
+      let totalPengeluaran = 0;
+      const items = listPengeluaran.map(p => {
+        const nom = parseInt(p.nominal, 10) || 0;
+        totalPengeluaran += nom;
+        return { nama: p.nama || "", nominal: nom };
+      });
+
+      const saldoAkhir = totalPemasukan - totalPengeluaran;
+
+      const jabatanKiri = document.getElementById("jabatanKiri").value || "ketua";
+      const namaKiri = document.getElementById("namaKiri").value || "Syarif Hidayat";
+      const jabatanKanan = document.getElementById("jabatanKanan").value || "Bendahara";
+      const namaKanan = document.getElementById("namaKanan").value || "Ahmad Rizal";
+
+      return {
+        bulanSekarang,
+        tahun,
+        subJudul,
+        bulanKemarin,
+        fontName,
+        saldoKemarin,
+        saldoMasuk,
+        totalPemasukan,
+        pengeluaran: items,
+        totalPengeluaran,
+        saldoAkhir,
+        jabatanKiri,
+        namaKiri,
+        jabatanKanan,
+        namaKanan
+      };
+    }
+
     // Auto update bulan kemarin saat bulan sekarang dipilih
     function onBulanSekarangChange() {
       const selected = document.getElementById("bulanSekarang").value;
@@ -890,7 +965,7 @@
           <td>
             <input type="text" value="${item.nama}" placeholder="Nama Pengeluaran (mis: Aceng)" 
               id="nama_pengeluaran_${index}"
-              oninput="listPengeluaran[${index}].nama = this.value; updatePreview(); saveToLocalStorage()">
+              oninput="listPengeluaran[${index}].nama = this.value; updateAll(); saveToLocalStorage()">
           </td>
           <td>
             <div class="input-money-wrapper">
@@ -942,74 +1017,52 @@
 
     // Update semua kalkulasi & tampilan preview
     function updateAll() {
-      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
-      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
-      const totalPemasukan = saldoKemarin + saldoMasuk;
-
-      let totalPengeluaran = 0;
-      listPengeluaran.forEach(p => {
-        totalPengeluaran += (p.nominal || 0);
-      });
-
-      const saldoAkhir = totalPemasukan - totalPengeluaran;
+      const state = getCurrentState();
 
       // Update badge stat di form
-      document.getElementById("displayTotalPemasukan").textContent = "Rp. " + formatRibuan(totalPemasukan);
-      document.getElementById("displayTotalPengeluaran").textContent = "Rp. " + formatRibuan(totalPengeluaran);
+      document.getElementById("displayTotalPemasukan").textContent = "Rp. " + formatRibuan(state.totalPemasukan);
+      document.getElementById("displayTotalPengeluaran").textContent = "Rp. " + formatRibuan(state.totalPengeluaran);
       
       const elSaldoAkhir = document.getElementById("displaySaldoAkhir");
-      elSaldoAkhir.textContent = "Rp. " + formatRibuan(saldoAkhir);
+      elSaldoAkhir.textContent = "Rp. " + formatRibuan(state.saldoAkhir);
       
       const badgeSaldo = document.getElementById("badgeSaldoAkhir");
-      if (saldoAkhir < 0) {
+      if (state.saldoAkhir < 0) {
         badgeSaldo.className = "stat-badge highlight-red";
       } else {
         badgeSaldo.className = "stat-badge highlight";
       }
 
-      updatePreview(totalPemasukan, totalPengeluaran, saldoAkhir);
+      updatePreview(state);
       saveToLocalStorage();
     }
 
     // Update tampilan kertas preview
-    function updatePreview(totalPemasukan, totalPengeluaran, saldoAkhir) {
-      const bulanSekarang = document.getElementById("bulanSekarang").value;
-      const tahun = document.getElementById("tahun").value;
-      const bulanKemarin = document.getElementById("bulanKemarin").value;
-      const font = document.getElementById("fontDocx").value;
+    function updatePreview(state) {
+      if (!state) state = getCurrentState();
 
       const printArea = document.getElementById("printArea");
-      printArea.style.fontFamily = font;
+      printArea.style.fontFamily = state.fontName;
 
-      // Title
-      document.getElementById("previewTitle").textContent = `${bulanSekarang} ${tahun}`;
+      // 1. Judul & Sub-Judul
+      document.getElementById("previewTitle").textContent = `${state.bulanSekarang} ${state.tahun}`;
+      document.getElementById("previewSubJudul").textContent = state.subJudul;
 
-      // Section 1
-      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
-      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
-      if (totalPemasukan === undefined) totalPemasukan = saldoKemarin + saldoMasuk;
+      // 2. Section 1: Saldo Awal & Saldo Masuk
+      document.getElementById("prevRowSaldoKemarinLabel").textContent = `Sisa Saldo Bulan ${state.bulanKemarin} ${state.tahun}`;
+      document.getElementById("prevRowSaldoKemarinVal").textContent = formatRibuan(state.saldoKemarin);
 
-      document.getElementById("prevRowSaldoKemarinLabel").textContent = `Sisa Saldo Bulan ${bulanKemarin} ${tahun}`;
-      document.getElementById("prevRowSaldoKemarinVal").textContent = formatRibuan(saldoKemarin);
+      document.getElementById("prevRowSaldoMasukLabel").textContent = `Saldo Masuk Bulan ${state.bulanSekarang}`;
+      document.getElementById("prevRowSaldoMasukVal").textContent = formatRibuan(state.saldoMasuk);
 
-      document.getElementById("prevRowSaldoMasukLabel").textContent = `Saldo Masuk Bulan ${bulanSekarang}`;
-      document.getElementById("prevRowSaldoMasukVal").textContent = formatRibuan(saldoMasuk);
+      document.getElementById("prevRowTotalPemasukan").textContent = formatRibuan(state.totalPemasukan);
 
-      document.getElementById("prevRowTotalPemasukan").textContent = formatRibuan(totalPemasukan);
-
-      // Section 2: Pengeluaran
+      // 3. Section 2: Daftar Pengeluaran
       const prevTable = document.getElementById("prevTablePengeluaran").querySelector("tbody");
       prevTable.innerHTML = "";
 
-      if (totalPengeluaran === undefined) {
-        totalPengeluaran = listPengeluaran.reduce((sum, item) => sum + (item.nominal || 0), 0);
-      }
-      if (saldoAkhir === undefined) {
-        saldoAkhir = totalPemasukan - totalPengeluaran;
-      }
-
-      listPengeluaran.forEach((item, index) => {
-        const isLast = (index === listPengeluaran.length - 1);
+      state.pengeluaran.forEach((item, index) => {
+        const isLast = (index === state.pengeluaran.length - 1);
         const tr = document.createElement("tr");
         if (isLast) tr.className = "sum-line";
         tr.innerHTML = `
@@ -1028,26 +1081,27 @@
         <td class="col-desc"></td>
         <td class="col-eq"></td>
         <td class="col-rp">Rp.</td>
-        <td class="col-amt">${formatRibuan(totalPengeluaran)}</td>
+        <td class="col-amt">${formatRibuan(state.totalPengeluaran)}</td>
       `;
       prevTable.appendChild(trTotalPengeluaran);
 
-      // Section 3: Rekapitulasi
-      document.getElementById("prevRekapPemasukan").textContent = formatRibuan(totalPemasukan);
-      document.getElementById("prevRekapPengeluaran").textContent = formatRibuan(totalPengeluaran);
-      document.getElementById("prevRekapSaldoAkhir").textContent = formatRibuan(saldoAkhir);
+      // 4. Section 3: Rekapitulasi (Pemasukan vs Pengeluaran)
+      document.getElementById("prevRekapPemasukan").textContent = formatRibuan(state.totalPemasukan);
+      document.getElementById("prevRekapPengeluaran").textContent = formatRibuan(state.totalPengeluaran);
+      document.getElementById("prevRekapSaldoAkhir").textContent = formatRibuan(state.saldoAkhir);
 
-      // Signatures
-      document.getElementById("prevJabatanKiri").textContent = document.getElementById("jabatanKiri").value;
-      document.getElementById("prevNamaKiri").textContent = document.getElementById("namaKiri").value;
-      document.getElementById("prevJabatanKanan").textContent = document.getElementById("jabatanKanan").value;
-      document.getElementById("prevNamaKanan").textContent = document.getElementById("namaKanan").value;
+      // 5. Tanda Tangan
+      document.getElementById("prevJabatanKiri").textContent = state.jabatanKiri;
+      document.getElementById("prevNamaKiri").textContent = state.namaKiri;
+      document.getElementById("prevJabatanKanan").textContent = state.jabatanKanan;
+      document.getElementById("prevNamaKanan").textContent = state.namaKanan;
     }
 
     // Fitur: Muat data contoh sama persis dengan foto user
     function muatDataContoh() {
       document.getElementById("bulanSekarang").value = "Agustus";
       document.getElementById("tahun").value = "2026";
+      document.getElementById("subJudul").value = "Pengurus Musholla ....";
       document.getElementById("bulanKemarin").value = "juni";
       document.getElementById("inputSaldoKemarin").value = "-166.000";
       document.getElementById("inputSaldoMasuk").value = "1.600.000";
@@ -1074,32 +1128,27 @@
 
     // Fitur: Lanjut ke Bulan Berikutnya
     function lanjutBulanBerikutnya() {
-      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
-      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
-      const totalPemasukan = saldoKemarin + saldoMasuk;
-      const totalPengeluaran = listPengeluaran.reduce((sum, item) => sum + (item.nominal || 0), 0);
-      const saldoAkhir = totalPemasukan - totalPengeluaran;
+      const state = getCurrentState();
 
       const konfirmasi = confirm(
         `Siap membuat laporan untuk bulan berikutnya?\n\n` +
-        `• Sisa Saldo Akhir bulan ini (${formatRibuan(saldoAkhir)}) otomatis akan menjadi Sisa Saldo Bulan Kemarin.\n` +
-        `• Daftar pengeluaran akan dikosongkan untuk input bulan baru.\n` +
-        `• Nama Ketua & Bendahara tetap tersimpan.`
+        `• Sisa Saldo Akhir bulan ini (${formatRibuan(state.saldoAkhir)}) otomatis akan menjadi Sisa Saldo Bulan Kemarin.\n` +
+        `• Sub-judul dan Nama Penandatangan tetap tersimpan.\n` +
+        `• Daftar pengeluaran akan dikosongkan untuk input bulan baru.`
       );
 
       if (!konfirmasi) return;
 
-      const bulanSekarang = document.getElementById("bulanSekarang").value;
-      const idx = daftarBulan.indexOf(bulanSekarang);
+      const idx = daftarBulan.indexOf(state.bulanSekarang);
       let nextMonthIdx = (idx + 1) % 12;
       let nextMonth = daftarBulan[nextMonthIdx];
-      let tahun = parseInt(document.getElementById("tahun").value, 10);
+      let tahun = parseInt(state.tahun, 10);
       if (nextMonthIdx === 0) tahun += 1;
 
       document.getElementById("bulanSekarang").value = nextMonth;
       document.getElementById("tahun").value = tahun;
-      document.getElementById("bulanKemarin").value = bulanSekarang.toLowerCase();
-      document.getElementById("inputSaldoKemarin").value = formatRibuan(saldoAkhir);
+      document.getElementById("bulanKemarin").value = state.bulanSekarang.toLowerCase();
+      document.getElementById("inputSaldoKemarin").value = formatRibuan(state.saldoAkhir);
       document.getElementById("inputSaldoMasuk").value = "0";
 
       listPengeluaran = [
@@ -1117,6 +1166,7 @@
       const data = {
         bulanSekarang: document.getElementById("bulanSekarang").value,
         tahun: document.getElementById("tahun").value,
+        subJudul: document.getElementById("subJudul").value,
         bulanKemarin: document.getElementById("bulanKemarin").value,
         saldoKemarin: document.getElementById("inputSaldoKemarin").value,
         saldoMasuk: document.getElementById("inputSaldoMasuk").value,
@@ -1140,6 +1190,7 @@
           const data = JSON.parse(saved);
           if (data.bulanSekarang) document.getElementById("bulanSekarang").value = data.bulanSekarang;
           if (data.tahun) document.getElementById("tahun").value = data.tahun;
+          if (data.subJudul !== undefined) document.getElementById("subJudul").value = data.subJudul;
           if (data.bulanKemarin) document.getElementById("bulanKemarin").value = data.bulanKemarin;
           if (data.saldoKemarin !== undefined) document.getElementById("inputSaldoKemarin").value = data.saldoKemarin;
           if (data.saldoMasuk !== undefined) document.getElementById("inputSaldoMasuk").value = data.saldoMasuk;
@@ -1174,9 +1225,9 @@
       }, 150);
     }
 
-    // ==========================================
-    // 1. GENERATE DAN DOWNLOAD FILE WORD (.DOCX)
-    // ==========================================
+    // =========================================================================
+    // 1. GENERATE DAN DOWNLOAD FILE WORD (.DOCX) - STRUKTUR IDENTIK PREVIEW
+    // =========================================================================
     async function downloadWordDocx() {
       if (!window.docx) {
         alert("Library docx belum siap. Pastikan file docx.umd.js tersedia.");
@@ -1185,21 +1236,21 @@
 
       showToast("Sedang menyiapkan file Word...");
 
-      const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType } = window.docx;
+      const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, AlignmentType, TableLayoutType } = window.docx;
 
-      const bulanSekarang = document.getElementById("bulanSekarang").value;
-      const tahun = document.getElementById("tahun").value;
-      const bulanKemarin = document.getElementById("bulanKemarin").value;
-      const fontName = document.getElementById("fontDocx").value || "Arial";
+      // Ambil data dari state yang sama persis dengan preview
+      const state = getCurrentState();
+      const fontName = state.fontName;
 
-      const saldoKemarin = parseRibuan(document.getElementById("inputSaldoKemarin").value);
-      const saldoMasuk = parseRibuan(document.getElementById("inputSaldoMasuk").value);
-      const totalPemasukan = saldoKemarin + saldoMasuk;
-
-      const jabatanKiri = document.getElementById("jabatanKiri").value || "ketua";
-      const namaKiri = document.getElementById("namaKiri").value || "Syarif Hidayat";
-      const jabatanKanan = document.getElementById("jabatanKanan").value || "Bendahara";
-      const namaKanan = document.getElementById("namaKanan").value || "Ahmad Rizal";
+      // Definisi border tabel tanpa garis tepi (borderless)
+      const borderlessTable = {
+        top: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        bottom: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        left: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        right: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "auto" },
+        insideVertical: { style: BorderStyle.NONE, size: 0, color: "auto" },
+      };
 
       const noBorder = {
         top: { style: BorderStyle.NONE, size: 0, color: "auto" },
@@ -1208,6 +1259,7 @@
         right: { style: BorderStyle.NONE, size: 0, color: "auto" },
       };
 
+      // Border bawah tegas (garis rekapitulasi / penjumlahan)
       const bottomBorder = {
         top: { style: BorderStyle.NONE, size: 0, color: "auto" },
         bottom: { style: BorderStyle.SINGLE, size: 12, color: "000000" },
@@ -1215,47 +1267,53 @@
         right: { style: BorderStyle.NONE, size: 0, color: "auto" },
       };
 
-      const fontSize = 11;
-      const fontPt = fontSize * 2;
+      const fontSize = 11; // 11pt
+      const fontPt = fontSize * 2; // 22 half-pts
 
-      // Lebar 4 kolom: Deskripsi, =, Rp., Nominal
-      const colWidths = [4500, 500, 700, 2000];
+      // Lebar kolom tabel proporsional persis dengan CSS preview:
+      // Total lebar: 8400 DXA
+      // Col 0 (Deskripsi): 4368 DXA (52%)
+      // Col 1 (=):          672 DXA (8%)
+      // Col 2 (Rp.):        672 DXA (8%)
+      // Col 3 (Nominal):   2688 DXA (32%)
+      const colWidths = [4368, 672, 672, 2688];
+      const totalTableWidth = 8400;
 
-      function createRow(label, eq, rp, val, isUnderlined, isBold) {
-        const borderCol1 = noBorder;
-        const borderColCalc = isUnderlined ? bottomBorder : noBorder;
+      function createRow(col1, col2, col3, col4, isUnderline, isBold) {
+        const borderDesc = noBorder;
+        const borderCalc = isUnderline ? bottomBorder : noBorder;
 
         return new TableRow({
           children: [
             new TableCell({
               width: { size: colWidths[0], type: WidthType.DXA },
-              borders: borderCol1,
+              borders: borderDesc,
               children: [new Paragraph({
-                children: [new TextRun({ text: label, bold: isBold, font: fontName, size: fontPt })],
+                children: [new TextRun({ text: col1, bold: isBold, font: fontName, size: fontPt })],
                 alignment: AlignmentType.LEFT,
               })],
             }),
             new TableCell({
               width: { size: colWidths[1], type: WidthType.DXA },
-              borders: borderColCalc,
+              borders: borderCalc,
               children: [new Paragraph({
-                children: [new TextRun({ text: eq, bold: isBold, font: fontName, size: fontPt })],
+                children: [new TextRun({ text: col2, bold: isBold, font: fontName, size: fontPt })],
                 alignment: AlignmentType.CENTER,
               })],
             }),
             new TableCell({
               width: { size: colWidths[2], type: WidthType.DXA },
-              borders: borderColCalc,
+              borders: borderCalc,
               children: [new Paragraph({
-                children: [new TextRun({ text: rp, bold: isBold, font: fontName, size: fontPt })],
+                children: [new TextRun({ text: col3, bold: isBold, font: fontName, size: fontPt })],
                 alignment: AlignmentType.LEFT,
               })],
             }),
             new TableCell({
               width: { size: colWidths[3], type: WidthType.DXA },
-              borders: borderColCalc,
+              borders: borderCalc,
               children: [new Paragraph({
-                children: [new TextRun({ text: val, bold: isBold, font: fontName, size: fontPt })],
+                children: [new TextRun({ text: col4, bold: isBold, font: fontName, size: fontPt })],
                 alignment: AlignmentType.RIGHT,
               })],
             }),
@@ -1265,52 +1323,63 @@
 
       // 1. Tabel Saldo & Pemasukan
       const rowsTabel1 = [
-        createRow(`Sisa Saldo Bulan ${bulanKemarin} ${tahun}`, "=", "Rp.", formatRibuan(saldoKemarin), false, false),
-        createRow(`Saldo Masuk Bulan ${bulanSekarang}`, "=", "Rp.", formatRibuan(saldoMasuk), true, false),
-        createRow("Total", "=", "Rp.", formatRibuan(totalPemasukan), false, true),
+        createRow(`Sisa Saldo Bulan ${state.bulanKemarin} ${state.tahun}`, "=", "Rp.", formatRibuan(state.saldoKemarin), false, false),
+        createRow(`Saldo Masuk Bulan ${state.bulanSekarang}`, "=", "Rp.", formatRibuan(state.saldoMasuk), true, false),
+        createRow("Total", "=", "Rp.", formatRibuan(state.totalPemasukan), false, true),
       ];
 
-      // 2. Tabel Pengeluaran
+      // 2. Tabel Daftar Pengeluaran
       const rowsTabel2 = [];
-      let totalPengeluaran = 0;
-      listPengeluaran.forEach((item, index) => {
-        const isLast = (index === listPengeluaran.length - 1);
-        totalPengeluaran += (item.nominal || 0);
+      state.pengeluaran.forEach((item, index) => {
+        const isLast = (index === state.pengeluaran.length - 1);
         rowsTabel2.push(
           createRow(item.nama, "=", "Rp.", formatRibuan(item.nominal), isLast, false)
         );
       });
+      // Baris total pengeluaran
       rowsTabel2.push(
-        createRow("", "", "Rp.", formatRibuan(totalPengeluaran), false, true)
+        createRow("", "", "Rp.", formatRibuan(state.totalPengeluaran), false, true)
       );
 
-      // 3. Tabel Rekapitulasi
-      const saldoAkhir = totalPemasukan - totalPengeluaran;
+      // 3. Tabel Rekapitulasi (Pemasukan vs Pengeluaran)
       const rowsTabel3 = [
-        createRow("Pemasukan", "=", "Rp.", formatRibuan(totalPemasukan), false, false),
-        createRow("Pengeluaran", "=", "Rp.", formatRibuan(totalPengeluaran), true, false),
-        createRow("", "", "Rp.", formatRibuan(saldoAkhir), false, true),
+        createRow("Pemasukan", "=", "Rp.", formatRibuan(state.totalPemasukan), false, false),
+        createRow("Pengeluaran", "=", "Rp.", formatRibuan(state.totalPengeluaran), true, false),
+        createRow("", "", "Rp.", formatRibuan(state.saldoAkhir), false, true),
       ];
 
+      // Buat instance tabel dengan layout FIXED agar kolom tidak melompat di Word
       const table1 = new Table({
-        width: { size: 7700, type: WidthType.DXA },
+        width: { size: totalTableWidth, type: WidthType.DXA },
+        columnWidths: colWidths,
+        layout: TableLayoutType.FIXED,
+        borders: borderlessTable,
         rows: rowsTabel1,
       });
 
       const table2 = new Table({
-        width: { size: 7700, type: WidthType.DXA },
+        width: { size: totalTableWidth, type: WidthType.DXA },
+        columnWidths: colWidths,
+        layout: TableLayoutType.FIXED,
+        borders: borderlessTable,
         rows: rowsTabel2,
       });
 
       const table3 = new Table({
-        width: { size: 7700, type: WidthType.DXA },
+        width: { size: totalTableWidth, type: WidthType.DXA },
+        columnWidths: colWidths,
+        layout: TableLayoutType.FIXED,
+        borders: borderlessTable,
         rows: rowsTabel3,
       });
 
       // 4. Tabel Tanda Tangan
-      const sigColWidth = 4300;
+      const sigColWidth = 4200;
       const sigTable = new Table({
-        width: { size: 8600, type: WidthType.DXA },
+        width: { size: totalTableWidth, type: WidthType.DXA },
+        columnWidths: [sigColWidth, sigColWidth],
+        layout: TableLayoutType.FIXED,
+        borders: borderlessTable,
         rows: [
           new TableRow({
             children: [
@@ -1318,7 +1387,7 @@
                 width: { size: sigColWidth, type: WidthType.DXA },
                 borders: noBorder,
                 children: [new Paragraph({
-                  children: [new TextRun({ text: jabatanKiri, bold: true, font: fontName, size: fontPt })],
+                  children: [new TextRun({ text: state.jabatanKiri, bold: true, font: fontName, size: fontPt })],
                   alignment: AlignmentType.CENTER,
                 })],
               }),
@@ -1326,13 +1395,13 @@
                 width: { size: sigColWidth, type: WidthType.DXA },
                 borders: noBorder,
                 children: [new Paragraph({
-                  children: [new TextRun({ text: jabatanKanan, bold: true, font: fontName, size: fontPt })],
+                  children: [new TextRun({ text: state.jabatanKanan, bold: true, font: fontName, size: fontPt })],
                   alignment: AlignmentType.CENTER,
                 })],
               }),
             ]
           }),
-          // Ruang tanda tangan
+          // Ruang tanda tangan (~4-5 baris kosong)
           new TableRow({
             children: [
               new TableCell({
@@ -1357,14 +1426,14 @@
               }),
             ]
           }),
-          // Baris nama
+          // Baris nama penandatangan
           new TableRow({
             children: [
               new TableCell({
                 width: { size: sigColWidth, type: WidthType.DXA },
                 borders: noBorder,
                 children: [new Paragraph({
-                  children: [new TextRun({ text: namaKiri, bold: true, font: fontName, size: fontPt })],
+                  children: [new TextRun({ text: state.namaKiri, bold: true, font: fontName, size: fontPt })],
                   alignment: AlignmentType.CENTER,
                 })],
               }),
@@ -1372,7 +1441,7 @@
                 width: { size: sigColWidth, type: WidthType.DXA },
                 borders: noBorder,
                 children: [new Paragraph({
-                  children: [new TextRun({ text: namaKanan, bold: true, font: fontName, size: fontPt })],
+                  children: [new TextRun({ text: state.namaKanan, bold: true, font: fontName, size: fontPt })],
                   alignment: AlignmentType.CENTER,
                 })],
               }),
@@ -1387,7 +1456,7 @@
           properties: {
             page: {
               margin: {
-                top: 1440,
+                top: 1440,    // 1 inci (2.54 cm)
                 right: 1440,
                 bottom: 1440,
                 left: 1440,
@@ -1395,31 +1464,45 @@
             }
           },
           children: [
-            // Judul Header Tengah
+            // 1. Judul Utama (Bulan & Tahun)
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `${bulanSekarang} ${tahun}`,
+                  text: `${state.bulanSekarang} ${state.tahun}`,
                   bold: true,
-                  size: 28,
+                  size: 28, // 14pt
                   font: fontName,
                 })
               ],
               alignment: AlignmentType.CENTER,
-              spacing: { after: 360 },
+              spacing: { after: 60 },
+            }),
+
+            // 2. Sub-Judul ("Pengurus Musholla ....")
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: state.subJudul,
+                  bold: false,
+                  size: fontPt, // 11pt
+                  font: fontName,
+                })
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 360 }, // 18pt
             }),
 
             // Section 1: Saldo & Pemasukan
             table1,
-            new Paragraph({ spacing: { after: 300 } }),
+            new Paragraph({ children: [], spacing: { before: 140, after: 140 } }),
 
             // Section 2: Daftar Pengeluaran
             table2,
-            new Paragraph({ spacing: { after: 300 } }),
+            new Paragraph({ children: [], spacing: { before: 140, after: 140 } }),
 
             // Section 3: Rekapitulasi Saldo
             table3,
-            new Paragraph({ spacing: { after: 600 } }),
+            new Paragraph({ children: [], spacing: { before: 400, after: 0 } }),
 
             // Section 4: Tanda Tangan
             sigTable,
@@ -1429,64 +1512,65 @@
 
       try {
         const blob = await Packer.toBlob(doc);
-        const fileName = `Laporan_Keuangan_${bulanSekarang}_${tahun}.docx`;
+        const fileName = `Laporan_Keuangan_${state.bulanSekarang}_${state.tahun}.docx`;
         triggerDownload(blob, fileName);
         showToast("File Word (.docx) berhasil diunduh!");
       } catch (err) {
-        console.error(err);
+        console.error("Gagal generate Word:", err);
         alert("Terjadi kesalahan saat membuat file Word: " + err.message);
       }
     }
 
-    // ==========================================
-    // 2. GENERATE DAN DOWNLOAD FILE PDF (.PDF)
-    // ==========================================
-    function downloadPDF() {
+    // =========================================================================
+    // 2. GENERATE DAN DOWNLOAD FILE PDF (.PDF) - MEMPERBAIKI MASALAH BLANK
+    // =========================================================================
+    async function downloadPDF() {
       if (typeof window.html2pdf === "undefined") {
         alert("Library PDF sedang dimuat, silakan coba beberapa saat lagi.");
         return;
       }
 
-      const bulanSekarang = document.getElementById("bulanSekarang").value;
-      const tahun = document.getElementById("tahun").value;
+      const state = getCurrentState();
       const element = document.getElementById("printArea");
 
-      showToast("Sedang membuat file PDF...");
+      if (!element || element.offsetWidth === 0 || element.offsetHeight === 0) {
+        alert("Elemen laporan belum siap di-render.");
+        return;
+      }
 
-      // Buat kloning elemen agar tampilan live preview tidak terganggu
-      const clone = element.cloneNode(true);
-      clone.style.boxShadow = "none";
-      clone.style.border = "none";
-      clone.style.borderRadius = "0";
-      clone.style.width = "720px";
-      clone.style.padding = "25px 30px";
-      clone.style.background = "#ffffff";
+      showToast("Sedang memproses file PDF...");
 
-      const wrapper = document.createElement("div");
-      wrapper.style.position = "fixed";
-      wrapper.style.left = "-9999px";
-      wrapper.style.top = "0";
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
+      // Tambahkan class khusus untuk menonaktifkan bayangan & border saat di-render canvas
+      element.classList.add("pdf-exporting");
+
+      // Beri jeda 400ms agar style render selesai sebelum html2canvas mengambil snapshot
+      await new Promise(r => setTimeout(r, 400));
 
       const opt = {
-        margin: [10, 10, 10, 10], // mm
-        filename: `Laporan_Keuangan_${bulanSekarang}_${tahun}.pdf`,
+        margin: [12, 12, 12, 12], // mm
+        filename: `Laporan_Keuangan_${state.bulanSekarang}_${state.tahun}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          scrollY: 0,
+          scrollX: 0
+        },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] }
       };
 
-      window.html2pdf().set(opt).from(clone).save()
-        .then(() => {
-          if (wrapper.parentNode) document.body.removeChild(wrapper);
-          showToast("File PDF (.pdf) berhasil diunduh!");
-        })
-        .catch((err) => {
-          if (wrapper.parentNode) document.body.removeChild(wrapper);
-          console.error(err);
-          alert("Gagal membuat PDF: " + err.message);
-        });
+      try {
+        await window.html2pdf().set(opt).from(element).save();
+        showToast("File PDF (.pdf) berhasil diunduh!");
+      } catch (err) {
+        console.error("Gagal membuat PDF langsung:", err);
+        alert("Terjadi kendala saat generate PDF. Membuka dialog cetak browser...");
+        window.print();
+      } finally {
+        element.classList.remove("pdf-exporting");
+      }
     }
 
     // Inisialisasi awal saat halaman dibuka
