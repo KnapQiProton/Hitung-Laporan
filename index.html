@@ -482,19 +482,35 @@
     }
 
     /* =========================================================================
-       CRITICAL: AREA PREVIEW A4 HARUS SELALU PUTIH DENGAN TEKS HITAM
-       (TIDAK TERPENGARUH DARK MODE)
+       CRITICAL: SCOPE WARNA KHUSUS KERTAS A4 (SELALU PUTIH APA PUN TEMANYA)
        ========================================================================= */
-    .a4-paper {
+    #preview-container,
+    .preview-container {
+      width: 100%;
+      display: block;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    #preview-container .a4-paper,
+    #preview-container .a4-page,
+    #preview-container .preview-paper,
+    #printArea,
+    .a4-paper,
+    .a4-page,
+    .preview-paper {
       background: #ffffff !important;
       background-color: #ffffff !important;
       color: #000000 !important;
       width: 100%;
       min-height: 720px;
       padding: 44px 50px;
-      border-radius: 8px;
+      border-radius: 4px;
       border: 1px solid #cbd5e1 !important;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.15) !important;
       font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
       font-size: 13.5px;
       line-height: 1.45;
@@ -503,55 +519,93 @@
       transition: box-shadow 0.25s ease, border-color 0.25s ease;
     }
 
-    /* Di Dark Mode, berikan border & shadow yang jelas agar kertas A4 terlihat tegas */
-    [data-theme="dark"] .a4-paper {
-      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+    /* Di Dark Mode: Container kertas A4 TETAP 100% PUTIH dengan border/shadow kontras */
+    [data-theme="dark"] #preview-container .a4-paper,
+    [data-theme="dark"] #preview-container .a4-page,
+    [data-theme="dark"] #preview-container .preview-paper,
+    [data-theme="dark"] #printArea,
+    [data-theme="dark"] .a4-paper,
+    [data-theme="dark"] .a4-page,
+    [data-theme="dark"] .preview-paper {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.85) !important;
     }
 
-    /* Seluruh elemen di dalam kertas A4 terkunci warna hitam di atas putih */
-    .a4-paper,
+    /* Seluruh elemen di dalam kertas A4 SELALU berwarna hitam & tidak menimpa background putih */
+    #preview-container .a4-paper *,
+    #printArea *,
     .a4-paper *,
-    .a4-paper .paper-title,
-    .a4-paper .paper-subtitle,
+    .a4-page *,
+    .preview-paper * {
+      color: #000000 !important;
+      border-color: #000000 !important;
+      -webkit-text-fill-color: #000000 !important;
+    }
+
+    /* Background tabel dan div di dalam kertas A4 */
+    #printArea table,
+    #printArea tr,
+    #printArea td,
+    #printArea div,
+    #printArea p,
+    #printArea span,
     .a4-paper table,
     .a4-paper tr,
     .a4-paper td,
-    .a4-paper .sig-name,
-    .a4-paper div {
-      color: #000000 !important;
+    .a4-paper div,
+    .a4-paper p,
+    .a4-paper span {
       background-color: transparent !important;
     }
 
+    #preview-container .paper-title,
+    #printArea .paper-title,
     .a4-paper .paper-title {
       text-align: center;
       font-size: 18px;
       font-weight: bold;
       margin-bottom: 4px;
       text-transform: capitalize;
+      color: #000000 !important;
+      background: transparent !important;
     }
 
+    #preview-container .paper-subtitle,
+    #printArea .paper-subtitle,
     .a4-paper .paper-subtitle {
       text-align: center;
       font-size: 13.5px;
       font-weight: 500;
       color: #111111 !important;
       margin-bottom: 24px;
+      background: transparent !important;
     }
 
+    #preview-container .paper-table,
+    #printArea .paper-table,
     .a4-paper .paper-table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 22px;
       font-size: 13.5px;
       table-layout: fixed;
+      background: transparent !important;
     }
 
+    #preview-container .paper-table td,
+    #printArea .paper-table td,
     .a4-paper .paper-table td {
       padding: 3.5px 0;
       vertical-align: bottom;
+      color: #000000 !important;
+      background: transparent !important;
     }
 
+    #preview-container .paper-table .col-desc,
+    #printArea .paper-table .col-desc,
     .a4-paper .paper-table .col-desc {
       width: 52%;
       text-align: left;
@@ -560,16 +614,22 @@
       white-space: nowrap;
     }
 
+    #preview-container .paper-table .col-eq,
+    #printArea .paper-table .col-eq,
     .a4-paper .paper-table .col-eq {
       width: 8%;
       text-align: center;
     }
 
+    #preview-container .paper-table .col-rp,
+    #printArea .paper-table .col-rp,
     .a4-paper .paper-table .col-rp {
       width: 8%;
       text-align: left;
     }
 
+    #preview-container .paper-table .col-amt,
+    #printArea .paper-table .col-amt,
     .a4-paper .paper-table .col-amt {
       width: 32%;
       text-align: right;
@@ -577,6 +637,13 @@
       white-space: nowrap;
     }
 
+    /* Garis bawah penjumlahan (sum-line) SELALU hitam pekat */
+    #preview-container .sum-line td.col-eq,
+    #preview-container .sum-line td.col-rp,
+    #preview-container .sum-line td.col-amt,
+    #printArea .sum-line td.col-eq,
+    #printArea .sum-line td.col-rp,
+    #printArea .sum-line td.col-amt,
     .a4-paper .sum-line td.col-eq,
     .a4-paper .sum-line td.col-rp,
     .a4-paper .sum-line td.col-amt {
@@ -584,31 +651,45 @@
       padding-bottom: 3.5px;
     }
 
+    #preview-container .row-bold,
+    #printArea .row-bold,
     .a4-paper .row-bold {
       font-weight: bold;
     }
 
+    #preview-container .signatures-block,
+    #printArea .signatures-block,
     .a4-paper .signatures-block {
       margin-top: 48px;
       display: flex;
       justify-content: space-between;
       text-align: center;
       padding: 0 10px;
+      background: transparent !important;
     }
 
+    #preview-container .sig-col,
+    #printArea .sig-col,
     .a4-paper .sig-col {
       width: 220px;
+      background: transparent !important;
     }
 
+    #preview-container .sig-space,
+    #printArea .sig-space,
     .a4-paper .sig-space {
       height: 80px;
     }
 
+    #preview-container .sig-name,
+    #printArea .sig-name,
     .a4-paper .sig-name {
       font-weight: bold;
+      color: #000000 !important;
     }
 
     /* State khusus saat PDF di-generate */
+    #printArea.pdf-exporting,
     .a4-paper.pdf-exporting {
       box-shadow: none !important;
       border: none !important;
@@ -895,80 +976,82 @@
           <span style="font-size: 0.8rem;">Tampilan kertas A4 identik dengan Word & PDF</span>
         </div>
 
-        <!-- A4 PAPER PREVIEW (SELALU PUTIH & TEKS HITAM) -->
-        <div class="a4-paper" id="printArea">
-          <div class="paper-title" id="previewTitle">Agustus 2026</div>
-          <div class="paper-subtitle" id="previewSubJudul">Pengurus Musholla ....</div>
+        <!-- A4 PAPER PREVIEW CONTAINER (SELALU PUTIH & TEKS HITAM) -->
+        <div id="preview-container" class="preview-container">
+          <div class="a4-paper preview-paper a4-page" id="printArea" style="background-color: #ffffff !important; color: #000000 !important;">
+            <div class="paper-title" id="previewTitle">Agustus 2026</div>
+            <div class="paper-subtitle" id="previewSubJudul">Pengurus Musholla ....</div>
 
-          <!-- Section 1: Saldo Awal & Saldo Masuk -->
-          <table class="paper-table">
-            <tbody>
-              <tr>
-                <td class="col-desc" id="prevRowSaldoKemarinLabel">Sisa Saldo Bulan juni 2026</td>
-                <td class="col-eq">=</td>
-                <td class="col-rp">Rp.</td>
-                <td class="col-amt" id="prevRowSaldoKemarinVal">-166.000</td>
-              </tr>
-              <tr class="sum-line">
-                <td class="col-desc" id="prevRowSaldoMasukLabel">Saldo Masuk Bulan Agustus</td>
-                <td class="col-eq">=</td>
-                <td class="col-rp">Rp.</td>
-                <td class="col-amt" id="prevRowSaldoMasukVal">1.600.000</td>
-              </tr>
-              <tr class="row-bold">
-                <td class="col-desc">Total</td>
-                <td class="col-eq">=</td>
-                <td class="col-rp">Rp.</td>
-                <td class="col-amt" id="prevRowTotalPemasukan">1.434.000</td>
-              </tr>
-            </tbody>
-          </table>
+            <!-- Section 1: Saldo Awal & Saldo Masuk -->
+            <table class="paper-table">
+              <tbody>
+                <tr>
+                  <td class="col-desc" id="prevRowSaldoKemarinLabel">Sisa Saldo Bulan juni 2026</td>
+                  <td class="col-eq">=</td>
+                  <td class="col-rp">Rp.</td>
+                  <td class="col-amt" id="prevRowSaldoKemarinVal">-166.000</td>
+                </tr>
+                <tr class="sum-line">
+                  <td class="col-desc" id="prevRowSaldoMasukLabel">Saldo Masuk Bulan Agustus</td>
+                  <td class="col-eq">=</td>
+                  <td class="col-rp">Rp.</td>
+                  <td class="col-amt" id="prevRowSaldoMasukVal">1.600.000</td>
+                </tr>
+                <tr class="row-bold">
+                  <td class="col-desc">Total</td>
+                  <td class="col-eq">=</td>
+                  <td class="col-rp">Rp.</td>
+                  <td class="col-amt" id="prevRowTotalPemasukan">1.434.000</td>
+                </tr>
+              </tbody>
+            </table>
 
-          <!-- Section 2: Daftar Pengeluaran -->
-          <table class="paper-table" id="prevTablePengeluaran">
-            <tbody>
-              <!-- Diisi oleh JS -->
-            </tbody>
-          </table>
+            <!-- Section 2: Daftar Pengeluaran -->
+            <table class="paper-table" id="prevTablePengeluaran">
+              <tbody>
+                <!-- Diisi oleh JS -->
+              </tbody>
+            </table>
 
-          <!-- Section 3: Rekapitulasi (Pemasukan vs Pengeluaran) -->
-          <table class="paper-table">
-            <tbody>
-              <tr>
-                <td class="col-desc">Pemasukan</td>
-                <td class="col-eq">=</td>
-                <td class="col-rp">Rp.</td>
-                <td class="col-amt" id="prevRekapPemasukan">1.434.000</td>
-              </tr>
-              <tr class="sum-line">
-                <td class="col-desc">Pengeluaran</td>
-                <td class="col-eq">=</td>
-                <td class="col-rp">Rp.</td>
-                <td class="col-amt" id="prevRekapPengeluaran">2.022.000</td>
-              </tr>
-              <tr class="row-bold">
-                <td class="col-desc"></td>
-                <td class="col-eq"></td>
-                <td class="col-rp">Rp.</td>
-                <td class="col-amt" id="prevRekapSaldoAkhir">-588.000</td>
-              </tr>
-            </tbody>
-          </table>
+            <!-- Section 3: Rekapitulasi (Pemasukan vs Pengeluaran) -->
+            <table class="paper-table">
+              <tbody>
+                <tr>
+                  <td class="col-desc">Pemasukan</td>
+                  <td class="col-eq">=</td>
+                  <td class="col-rp">Rp.</td>
+                  <td class="col-amt" id="prevRekapPemasukan">1.434.000</td>
+                </tr>
+                <tr class="sum-line">
+                  <td class="col-desc">Pengeluaran</td>
+                  <td class="col-eq">=</td>
+                  <td class="col-rp">Rp.</td>
+                  <td class="col-amt" id="prevRekapPengeluaran">2.022.000</td>
+                </tr>
+                <tr class="row-bold">
+                  <td class="col-desc"></td>
+                  <td class="col-eq"></td>
+                  <td class="col-rp">Rp.</td>
+                  <td class="col-amt" id="prevRekapSaldoAkhir">-588.000</td>
+                </tr>
+              </tbody>
+            </table>
 
-          <!-- Signatures (Tanda Tangan) -->
-          <div class="signatures-block">
-            <div class="sig-col">
-              <div id="prevJabatanKiri">ketua</div>
-              <div class="sig-space"></div>
-              <div class="sig-name" id="prevNamaKiri">Syarif Hidayat</div>
+            <!-- Signatures (Tanda Tangan) -->
+            <div class="signatures-block">
+              <div class="sig-col">
+                <div id="prevJabatanKiri">ketua</div>
+                <div class="sig-space"></div>
+                <div class="sig-name" id="prevNamaKiri">Syarif Hidayat</div>
+              </div>
+              <div class="sig-col">
+                <div id="prevJabatanKanan">Bendahara</div>
+                <div class="sig-space"></div>
+                <div class="sig-name" id="prevNamaKanan">Ahmad Rizal</div>
+              </div>
             </div>
-            <div class="sig-col">
-              <div id="prevJabatanKanan">Bendahara</div>
-              <div class="sig-space"></div>
-              <div class="sig-name" id="prevNamaKanan">Ahmad Rizal</div>
-            </div>
+
           </div>
-
         </div>
       </div>
     </div>
@@ -1017,6 +1100,11 @@
         document.documentElement.setAttribute("data-theme", "light");
         document.getElementById("themeIcon").textContent = "🌙";
         document.getElementById("themeLabel").textContent = "Dark Mode";
+      }
+      const printArea = document.getElementById("printArea");
+      if (printArea) {
+        printArea.style.backgroundColor = "#ffffff";
+        printArea.style.color = "#000000";
       }
     }
 
@@ -1214,7 +1302,11 @@
       if (!state) state = getCurrentState();
 
       const printArea = document.getElementById("printArea");
-      printArea.style.fontFamily = state.fontName;
+      if (printArea) {
+        printArea.style.backgroundColor = "#ffffff";
+        printArea.style.color = "#000000";
+        printArea.style.fontFamily = state.fontName;
+      }
 
       // 1. Judul & Sub-Judul
       document.getElementById("previewTitle").textContent = `${state.bulanSekarang} ${state.tahun}`;
