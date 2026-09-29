@@ -466,24 +466,91 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .preview-header h2 {
+    .preview-header-title h2 {
       font-size: 1rem;
       font-weight: 700;
       color: var(--text-main);
       transition: color 0.25s ease;
+      margin-bottom: 2px;
     }
 
-    .preview-header span {
+    .preview-header-title span {
       font-size: 0.8rem;
       color: var(--text-muted);
       transition: color 0.25s ease;
     }
 
+    .font-size-control-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 5px 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .font-size-control-wrapper label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-label);
+      white-space: nowrap;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .font-size-widget {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .font-size-slider {
+      width: 75px;
+      height: 4px;
+      cursor: pointer;
+      accent-color: #2563eb;
+    }
+
+    .font-size-select {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text-main);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .font-size-select:focus {
+      border-color: #2563eb;
+    }
+
     /* =========================================================================
        CRITICAL: SCOPE WARNA KHUSUS KERTAS A4 (SELALU PUTIH APA PUN TEMANYA)
+       & TYPOGRAPHY PROPORSIONAL BERBASIS --base-font-size
        ========================================================================= */
+    .a4-page {
+      --base-font-size: 12px;
+      font-size: var(--base-font-size);
+    }
+    .a4-page h1 { font-size: calc(var(--base-font-size) * 1.6); }
+    .a4-page h2 { font-size: calc(var(--base-font-size) * 1.3); }
+    .a4-page table { font-size: var(--base-font-size); }
+    .a4-page .footer { font-size: calc(var(--base-font-size) * 0.85); }
+
     #preview-container,
     .preview-container {
       width: 100%;
@@ -502,6 +569,8 @@
     .a4-paper,
     .a4-page,
     .preview-paper {
+      --base-font-size: 12px;
+      font-size: var(--base-font-size);
       background: #ffffff !important;
       background-color: #ffffff !important;
       color: #000000 !important;
@@ -512,7 +581,6 @@
       border: 1px solid #cbd5e1 !important;
       box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.15) !important;
       font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-      font-size: 13.5px;
       line-height: 1.45;
       position: relative;
       box-sizing: border-box;
@@ -561,11 +629,12 @@
       background-color: transparent !important;
     }
 
+    .a4-page h1,
     #preview-container .paper-title,
     #printArea .paper-title,
     .a4-paper .paper-title {
       text-align: center;
-      font-size: 18px;
+      font-size: calc(var(--base-font-size, 12px) * 1.6);
       font-weight: bold;
       margin-bottom: 4px;
       text-transform: capitalize;
@@ -573,24 +642,26 @@
       background: transparent !important;
     }
 
+    .a4-page h2,
     #preview-container .paper-subtitle,
     #printArea .paper-subtitle,
     .a4-paper .paper-subtitle {
       text-align: center;
-      font-size: 13.5px;
+      font-size: calc(var(--base-font-size, 12px) * 1.3);
       font-weight: 500;
       color: #111111 !important;
       margin-bottom: 24px;
       background: transparent !important;
     }
 
+    .a4-page table,
     #preview-container .paper-table,
     #printArea .paper-table,
     .a4-paper .paper-table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 22px;
-      font-size: 13.5px;
+      font-size: var(--base-font-size, 12px);
       table-layout: fixed;
       background: transparent !important;
     }
@@ -602,6 +673,7 @@
       vertical-align: bottom;
       color: #000000 !important;
       background: transparent !important;
+      font-size: var(--base-font-size, 12px);
     }
 
     #preview-container .paper-table .col-desc,
@@ -657,6 +729,7 @@
       font-weight: bold;
     }
 
+    .a4-page .footer,
     #preview-container .signatures-block,
     #printArea .signatures-block,
     .a4-paper .signatures-block {
@@ -666,6 +739,7 @@
       text-align: center;
       padding: 0 10px;
       background: transparent !important;
+      font-size: calc(var(--base-font-size, 12px) * 0.85);
     }
 
     #preview-container .sig-col,
@@ -859,9 +933,9 @@
           <label for="inputSaldoKemarin">Sisa Saldo Bulan Kemarin</label>
           <div class="input-money-wrapper">
             <span class="currency-prefix">Rp.</span>
-            <input type="text" id="inputSaldoKemarin" value="-166.000" oninput="handleMoneyInput(this); updateAll()" placeholder="0 (bisa pakai minus -)">
+            <input type="text" id="inputSaldoKemarin" value="- 166.000" oninput="handleMoneyInput(this); updateAll()" placeholder="0 (bisa pakai minus -)">
           </div>
-          <div class="hint">Bisa pakai tanda minus jika saldo kas tekor (contoh: <code>-166.000</code>)</div>
+          <div class="hint">Bisa pakai tanda minus jika saldo kas tekor (contoh: <code>- 166.000</code>)</div>
         </div>
 
         <div class="form-group">
@@ -972,8 +1046,28 @@
     <div class="preview-column">
       <div class="preview-sticky">
         <div class="preview-header">
-          <h2>📄 Live Preview Kertas (A4)</h2>
-          <span style="font-size: 0.8rem;">Tampilan kertas A4 identik dengan Word & PDF</span>
+          <div class="preview-header-title">
+            <h2>📄 Live Preview Kertas (A4)</h2>
+            <span>Tampilan kertas A4 identik dengan Word & PDF</span>
+          </div>
+          <!-- KONTROL UKURAN FONT PREVIEW A4 -->
+          <div class="font-size-control-wrapper">
+            <label for="fontSizeSelect" title="Sesuaikan ukuran font di pratinjau A4">
+              <span>🔍</span> Ukuran Font:
+            </label>
+            <div class="font-size-widget">
+              <input type="range" id="fontSizeSlider" min="10" max="16" step="1" value="12"
+                class="font-size-slider" oninput="changeFontSize(this.value + 'px')" title="Geser untuk ubah ukuran font">
+              <select id="fontSizeSelect" class="font-size-select" onchange="changeFontSize(this.value)" title="Pilih ukuran font pratinjau">
+                <option value="10px">10px</option>
+                <option value="11px">11px</option>
+                <option value="12px" selected>12px (Default)</option>
+                <option value="13px">13px</option>
+                <option value="14px">14px</option>
+                <option value="16px">16px</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <!-- A4 PAPER PREVIEW CONTAINER (SELALU PUTIH & TEKS HITAM) -->
@@ -989,7 +1083,7 @@
                   <td class="col-desc" id="prevRowSaldoKemarinLabel">Sisa Saldo Bulan juni 2026</td>
                   <td class="col-eq">=</td>
                   <td class="col-rp">Rp.</td>
-                  <td class="col-amt" id="prevRowSaldoKemarinVal">-166.000</td>
+                  <td class="col-amt" id="prevRowSaldoKemarinVal">- 166.000</td>
                 </tr>
                 <tr class="sum-line">
                   <td class="col-desc" id="prevRowSaldoMasukLabel">Saldo Masuk Bulan Agustus</td>
@@ -1032,13 +1126,13 @@
                   <td class="col-desc"></td>
                   <td class="col-eq"></td>
                   <td class="col-rp">Rp.</td>
-                  <td class="col-amt" id="prevRekapSaldoAkhir">-588.000</td>
+                  <td class="col-amt" id="prevRekapSaldoAkhir">- 588.000</td>
                 </tr>
               </tbody>
             </table>
 
             <!-- Signatures (Tanda Tangan) -->
-            <div class="signatures-block">
+            <div class="signatures-block footer">
               <div class="sig-col">
                 <div id="prevJabatanKiri">ketua</div>
                 <div class="sig-space"></div>
@@ -1125,13 +1219,58 @@
       setTimeout(() => { t.className = ""; }, 3000);
     }
 
-    // Helper: format angka ke string rupiah dengan titik ribuan
+    // ==========================================
+    // KONTROL UKURAN FONT PREVIEW A4 (10px - 16px)
+    // ==========================================
+    function changeFontSize(size) {
+      if (!size) size = "12px";
+      let cleanSize = typeof size === "number" ? size + "px" : size.trim();
+      const num = parseInt(cleanSize, 10);
+
+      // Normalisasi nilai sesuai opsi yang tersedia
+      if (num <= 10) cleanSize = "10px";
+      else if (num === 11) cleanSize = "11px";
+      else if (num === 12) cleanSize = "12px";
+      else if (num === 13) cleanSize = "13px";
+      else if (num === 14 || num === 15) cleanSize = "14px";
+      else if (num >= 16) cleanSize = "16px";
+
+      const printArea = document.getElementById("printArea");
+      if (printArea) {
+        printArea.style.setProperty("--base-font-size", cleanSize);
+      }
+      const previewContainer = document.getElementById("preview-container");
+      if (previewContainer) {
+        previewContainer.style.setProperty("--base-font-size", cleanSize);
+      }
+
+      // Sinkronkan elemen UI (dropdown select dan range slider)
+      const select = document.getElementById("fontSizeSelect");
+      if (select && select.value !== cleanSize) {
+        select.value = cleanSize;
+      }
+      const slider = document.getElementById("fontSizeSlider");
+      if (slider && parseInt(slider.value, 10) !== parseInt(cleanSize, 10)) {
+        slider.value = parseInt(cleanSize, 10);
+      }
+
+      try {
+        localStorage.setItem("laporan_font_size", cleanSize);
+      } catch (e) {}
+    }
+
+    function initFontSize() {
+      const saved = localStorage.getItem("laporan_font_size") || "12px";
+      changeFontSize(saved);
+    }
+
+    // Helper: format angka ke string rupiah dengan titik ribuan dan format negatif (minus + spasi)
     function formatRibuan(num) {
       if (num === null || num === undefined || isNaN(num)) return "0";
       const isNeg = num < 0;
       const abs = Math.abs(Math.round(num));
       const formatted = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-      return (isNeg ? "-" : "") + formatted;
+      return (isNeg ? "- " : "") + formatted;
     }
 
     // Helper: parse string rupiah input ke integer
@@ -1144,17 +1283,17 @@
       return isNeg ? -val : val;
     }
 
-    // Money input formatter saat user mengetik
+    // Money input formatter saat user mengetik (format negatif: minus + spasi)
     function handleMoneyInput(input) {
       let raw = input.value;
-      const isNeg = raw.startsWith("-");
+      const isNeg = raw.includes("-");
       let digits = raw.replace(/[^\d]/g, "");
       if (digits === "") {
         input.value = isNeg ? "-" : "";
         return;
       }
       let num = parseInt(digits, 10);
-      input.value = (isNeg ? "-" : "") + num.toLocaleString("id-ID");
+      input.value = (isNeg ? "- " : "") + num.toLocaleString("id-ID");
     }
 
     // Single source of truth untuk state aplikasi
@@ -1306,6 +1445,8 @@
         printArea.style.backgroundColor = "#ffffff";
         printArea.style.color = "#000000";
         printArea.style.fontFamily = state.fontName;
+        const currentSize = localStorage.getItem("laporan_font_size") || "12px";
+        printArea.style.setProperty("--base-font-size", currentSize);
       }
 
       // 1. Judul & Sub-Judul
@@ -1367,7 +1508,7 @@
       document.getElementById("tahun").value = "2026";
       document.getElementById("subJudul").value = "Pengurus Musholla ....";
       document.getElementById("bulanKemarin").value = "juni";
-      document.getElementById("inputSaldoKemarin").value = "-166.000";
+      document.getElementById("inputSaldoKemarin").value = "- 166.000";
       document.getElementById("inputSaldoMasuk").value = "1.600.000";
       document.getElementById("jabatanKiri").value = "ketua";
       document.getElementById("namaKiri").value = "Syarif Hidayat";
@@ -1840,6 +1981,7 @@
     // Inisialisasi awal saat halaman dibuka
     window.addEventListener("DOMContentLoaded", () => {
       initTheme();
+      initFontSize();
       loadFromLocalStorage();
       renderInputPengeluaran();
       updateAll();

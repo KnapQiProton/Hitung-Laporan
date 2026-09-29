@@ -19,7 +19,7 @@ def format_rupiah(num):
     is_neg = num < 0
     abs_val = abs(int(round(num)))
     formatted = f"{abs_val:,}".replace(",", ".")
-    return f"-{formatted}" if is_neg else formatted
+    return f"- {formatted}" if is_neg else formatted
 
 def set_cell_borders(cell, top=False, bottom=False, left=False, right=False, border_sz="12", border_color="000000"):
     """Mengatur border spesifik pada sel tabel docx."""
